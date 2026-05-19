@@ -1,0 +1,83 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Contact - Nobiel{% endblock %}
+
+{% block content %}
+<div class="dp-page">
+    <div class="dp-inner">
+
+        <a href="{{ url_for('main.index') }}" class="dp-back">← Retour à l'accueil</a>
+
+        <div class="dp-hero">
+            <h1>✉️ Nous Contacter</h1>
+            <p>Une question, une suggestion ? L'équipe NOBIEL vous répond dans les plus brefs délais.</p>
+        </div>
+
+        <div class="dp-grid-2">
+
+            <!-- Formulaire -->
+            <div class="dp-card">
+                <p class="dp-card-title">Envoyer un message</p>
+                <form method="POST" action="{{ url_for('main.contact') }}" class="dp-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="form-group">
+                        <label for="name">Nom complet</label>
+                        <input type="text" id="name" name="name" placeholder="Jean Dupont" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Adresse email</label>
+                        <input type="email" id="email" name="email" placeholder="jean@exemple.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Sujet</label>
+                        <input type="text" id="subject" name="subject" placeholder="Objet de votre message" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" rows="6" placeholder="Votre message…" required></textarea>
+                    </div>
+                    <div class="dp-form-actions">
+                        <button type="submit" class="dp-btn dp-btn-primary">Envoyer →</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Coordonnées -->
+            <div class="dp-card">
+                <p class="dp-card-title">Coordonnées</p>
+                <div class="dp-contact-info">
+                    <div class="dp-contact-row">
+                        <span class="dp-contact-icon">✉️</span>
+                        <div>
+                            <strong>Email</strong>
+                            <span>contact@nobiel.ci</span>
+                        </div>
+                    </div>
+                    <div class="dp-contact-row">
+                        <span class="dp-contact-icon">📞</span>
+                        <div>
+                            <strong>Téléphone</strong>
+                            <span>+225 XX XX XX XX</span>
+                        </div>
+                    </div>
+                    <div class="dp-contact-row">
+                        <span class="dp-contact-icon">📍</span>
+                        <div>
+                            <strong>Adresse</strong>
+                            <span>Abidjan, Côte d'Ivoire</span>
+                        </div>
+                    </div>
+                    <div class="dp-contact-row">
+                        <span class="dp-contact-icon">🕐</span>
+                        <div>
+                            <strong>Horaires</strong>
+                            <span>Lun – Ven, 08h – 17h</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

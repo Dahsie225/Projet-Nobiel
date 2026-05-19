@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Adhésions - Nobiel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Gestion des Adhésions - {{ member.full_name }}</h1>
+</div>
+
+<section class="adhesions-section">
+    <div class="adhesions-list">
+        <h2>📋 Historique des Adhésions</h2>
+        
+        {% if adhesions %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Montant</th>
+                        <th>Période</th>
+                        <th>Statut</th>
+                        <th>Méthode</th>
+                        <th>Justificatif</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for adhesion in adhesions %}
+                        <tr {% if adhesion.is_active %}class="active-row"{% endif %}>
+                            <td>
+                                {% if adhesion.adhesion_type == 'annual' %}Annuelle
+                                {% elif adhesion.adhesion_type == 'monthly' %}Mensuelle
+                                {% elif adhesion.adhesion_type == 'lifetime' %}À vie
+                                {% endif %}
+                            </td>
+                            <td>{{ adhesion.amount }} {{ adhesion.currency }}</td>
+                            <td>
+                                <small>
+                                    {{ adhesion.start_date.strftime('%d %b %Y') }} 
+                                    → 
+                                    {{ adhesion.end_date.strftime('%d %b %Y') }}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge" style="background: 
+                                    {% if adhesion.payment_status == 'paid' %}#d4edda; color: #155724
+                                    {% elif adhesion.payment_status == 'pending' %}#fff3cd; color: #856404
+                                    {% else %}#f8d7da; color: #721c24
+                                    {% endif %}
+                                ">{{ adhesion.payment_status }}</span>
+                            </td>
+                            <td>
+                                {% if adhesion.payment_method == 'cash' %}Espèces
+                                {% elif adhesion.payment_method == 'bank_transfer' %}Virement
+                                {% elif adhesion.payment_method == 'orange_money' %}Orange Money
+                                {% elif adhesion.payment_method == 'wave' %}Wave
+                                {% elif adhesion.payment_method == 'mtn' %}MTN
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if adhesion.receipt_file %}
+                                    <a href="{{ url_for('static', filename=adhesion.receipt_file) }}" target="_blank" title="Voir le justificatif">📄 Voir</a>
+                                {% else %}
+                                    <span style="color:#aaa;">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if current_user.is_authenticated and current_user.role == 'admin' and adhesion.payment_status == 'pending' %}
+                                    <form method="POST" action="{{ url_for('members.validate_payment', adhesion_id=adhesion.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn-sm btn-success">Valider</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="no-data">Aucune adhésion pour le moment.</p>
+        {% endif %}
+    </div>
+
+    {% if current_user.is_authenticated and (current_user.id == member.id or current_user.role == 'admin') %}
+        <div class="new-adhesion">
+            <h2>➕ Nouvelle Adhésion</h2>
+            
+            <form method="POST" class="adhesion-form" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.adhesion_type.label }}
+                        {{ form.adhesion_type(class="form-control") }}
+                        {% if form.adhesion_type.errors %}
+                            <small class="error">{{ form.adhesion_type.errors[0] }}</small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        {{ form.amount.label }}
+                        {{ form.amount(class="form-control", placeholder="Montant en XOF") }}
+                        {% if form.amount.errors %}
+                            <small class="error">{{ form.amount.errors[0] }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.payment_method.label }}
+                        {{ form.payment_method(class="form-control") }}
+                        {% if form.payment_method.errors %}
+                            <small class="error">{{ form.payment_method.errors[0] }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.notes.label }}
+                    {{ form.notes(rows=4, class="form-control", placeholder="Notes facultatives") }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.receipt_file.label }}
+                    {{ form.receipt_file(class="form-control") }}
+                    <small style="color:#666">JPG, PNG ou PDF. Preuve de paiement (optionnel).</small>
+                    {% if form.receipt_file.errors %}
+                        <small class="error">{{ form.receipt_file.errors[0] }}</small>
+                    {% endif %}
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">{{ form.submit() }}</button>
+                    <a href="{{ url_for('members.view_member', member_id=member.id) }}" class="btn btn-secondary">Retour</a>
+                </div>
+            </form>
+        </div>
+    {% endif %}
+</section>
+
+<style>
+.adhesions-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin: 30px 0;
+}
+
+.adhesions-list,
+.new-adhesion {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.adhesions-section h2 {
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
+.table tbody tr.active-row {
+    background-color: #f0fdf4;
+}
+
+.badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.error {
+    color: #e74c3c;
+    font-size: 12px;
+    display: block;
+    margin-top: 5px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+}
+
+@media (max-width: 1000px) {
+    .adhesions-section {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

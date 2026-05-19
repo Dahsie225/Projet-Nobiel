@@ -1,0 +1,715 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Médiathèque - Admin Nobiel{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Reprend le layout admin existant */
+body { background: #0f1629 !important; }
+.navbar { background: #0d0f1e !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: 300 !important; margin-bottom: 0 !important; }
+.footer { display: none !important; }
+main.container { padding: 0 !important; max-width: none !important; }
+
+.dashboard-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background: #0f1629;
+    font-family: 'Segoe UI', sans-serif;
+    padding-top: 82px;
+}
+
+/* ===== SIDEBAR ===== */
+.admin-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    background: linear-gradient(180deg, #0d1b3e 0%, #0a1228 100%);
+    border-right: 1px solid rgba(100,130,255,0.12);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    position: fixed;
+    top: 82px;
+    left: 0;
+    height: calc(100vh - 82px);
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid rgba(100,130,255,0.1);
+}
+
+.brand-icon { font-size: 28px; }
+.brand-title { display: block; font-size: 11px; font-weight: 700; color: #f59e0b; letter-spacing: 1.5px; text-transform: uppercase; }
+.brand-sub   { display: block; font-size: 12px; color: rgba(180,200,255,0.55); }
+
+.sidebar-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: rgba(180,200,255,0.35);
+    padding: 18px 20px 8px;
+    text-transform: uppercase;
+}
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; flex: 1; }
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: rgba(180,200,255,0.65);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.nav-item:hover, .nav-item.active {
+    background: rgba(100,130,255,0.12);
+    color: white;
+    text-decoration: none;
+}
+.nav-item.active { background: linear-gradient(135deg, rgba(100,130,255,0.22), rgba(245,158,11,0.1)); color: #f59e0b; }
+.nav-icon { font-size: 18px; }
+
+.sidebar-footer { padding: 12px; border-top: 1px solid rgba(100,130,255,0.1); margin-top: auto; }
+.nav-item.logout:hover { background: rgba(239,68,68,0.15); color: #f87171; }
+
+/* ===== MAIN CONTENT ===== */
+.admin-content {
+    flex: 1;
+    padding: 32px 36px;
+    overflow-y: auto;
+    color: white;
+    margin-left: 200px;
+}
+
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+}
+
+.content-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 4px;
+}
+
+.content-header-sub { color: rgba(180,200,255,0.55); font-size: 14px; margin: 0; }
+
+/* ===== FORMULAIRE UPLOAD ===== */
+.upload-card {
+    background: linear-gradient(135deg, rgba(30,50,100,0.5), rgba(20,35,70,0.5));
+    border: 1px solid rgba(100,130,255,0.15);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 36px;
+}
+
+.upload-card h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f59e0b;
+    margin: 0 0 20px;
+}
+
+.form-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 22px;
+}
+
+.form-tab {
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(100,130,255,0.25);
+    background: transparent;
+    color: rgba(180,200,255,0.65);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.form-tab.active, .form-tab:hover {
+    background: rgba(245,158,11,0.15);
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.upload-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group.full { grid-column: 1 / -1; }
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(180,200,255,0.7);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    background: rgba(10,18,40,0.6);
+    border: 1.5px solid rgba(100,130,255,0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: white;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #f59e0b;
+}
+
+.form-group input[type="file"] {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.form-group textarea { resize: vertical; min-height: 80px; }
+
+.btn-upload {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #1a1a1a;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+}
+
+.btn-upload:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,0.35); }
+
+/* ===== GRILLE MÉDIAS ===== */
+.media-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.media-card {
+    background: linear-gradient(135deg, rgba(30,50,100,0.4), rgba(20,35,70,0.4));
+    border: 1px solid rgba(100,130,255,0.12);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.media-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.3);
+}
+
+.media-card.unpublished { opacity: 0.55; }
+
+.media-thumb {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+    background: #0a1228;
+}
+
+.media-video-thumb {
+    width: 100%;
+    height: 160px;
+    background: #0a1228;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: rgba(180,200,255,0.4);
+}
+
+.media-card-body {
+    padding: 14px;
+}
+
+.media-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.media-card-event {
+    font-size: 12px;
+    color: #f59e0b;
+    margin: 0 0 8px;
+}
+
+.media-card-meta {
+    font-size: 11px;
+    color: rgba(180,200,255,0.45);
+    margin: 0 0 12px;
+}
+
+.badge-type {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 6px;
+}
+
+.badge-image { background: rgba(34,197,94,0.15); color: #4ade80; }
+.badge-video { background: rgba(239,68,68,0.15); color: #f87171; }
+.badge-published { background: rgba(34,197,94,0.15); color: #4ade80; }
+.badge-draft { background: rgba(156,163,175,0.15); color: #9ca3af; }
+
+.media-card-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-sm {
+    flex: 1;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.btn-toggle { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.btn-toggle:hover { background: rgba(245,158,11,0.3); }
+.btn-delete { background: rgba(239,68,68,0.15); color: #f87171; }
+.btn-delete:hover { background: rgba(239,68,68,0.3); }
+
+/* ===== MULTI-UPLOAD ===== */
+.multi-drop-zone {
+    border: 2px dashed rgba(124,58,237,0.45);
+    border-radius: 12px;
+    padding: 32px 20px;
+    text-align: center;
+    color: rgba(180,200,255,0.55);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    margin-bottom: 16px;
+}
+.multi-drop-zone:hover, .multi-drop-zone.dragover {
+    border-color: #7c3aed;
+    background: rgba(124,58,237,0.07);
+}
+.multi-drop-zone .drop-icon { font-size: 42px; display: block; margin-bottom: 8px; }
+.multi-drop-zone p { margin: 0; font-size: 14px; }
+.multi-drop-zone small { font-size: 12px; opacity: 0.6; }
+
+.multi-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+.multi-file-row {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 8px 12px;
+    border: 1px solid rgba(124,58,237,0.15);
+}
+.multi-file-preview {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #0a1228;
+}
+.multi-file-icon {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    border-radius: 6px;
+    background: #0a1228;
+}
+.multi-file-row input[type=text] {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 6px;
+    color: white;
+    padding: 6px 10px;
+    font-size: 13px;
+    width: 100%;
+}
+.multi-file-row input[type=text]:focus { outline: none; border-color: #7c3aed; }
+.multi-file-remove {
+    background: rgba(239,68,68,0.15);
+    color: #f87171;
+    border: none;
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.multi-file-remove:hover { background: rgba(239,68,68,0.3); }
+.multi-count { font-size: 12px; color: rgba(180,200,255,0.45); margin-bottom: 8px; }
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(180,200,255,0.4);
+}
+.empty-state p { font-size: 16px; margin-top: 12px; }
+
+@media (max-width: 768px) {
+    .upload-form-grid { grid-template-columns: 1fr; }
+    .admin-sidebar { display: none; }
+    .admin-content { margin-left: 0; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">🌍</div>
+            <div class="brand-text">
+                <span class="brand-title">RÉSEAU NATIONAL</span>
+                <span class="brand-sub">NOBIEL Admin</span>
+            </div>
+        </div>
+        <div class="sidebar-section-label">NAVIGATION</div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+                <span class="nav-icon">📊</span><span class="nav-label">Tableau de bord</span>
+            </a>
+            <a href="{{ url_for('main.index') }}" class="nav-item">
+                <span class="nav-icon">🏠</span><span class="nav-label">Accueil</span>
+            </a>
+            <a href="{{ url_for('admin.manage_articles') }}" class="nav-item">
+                <span class="nav-icon">📰</span><span class="nav-label">Actualités</span>
+            </a>
+            <a href="{{ url_for('admin.manage_members') }}" class="nav-item">
+                <span class="nav-icon">👥</span><span class="nav-label">Membres</span>
+            </a>
+            <a href="{{ url_for('admin.manage_adhesions') }}" class="nav-item">
+                <span class="nav-icon">📋</span><span class="nav-label">Adhésions</span>
+            </a>
+            <a href="{{ url_for('admin.manage_payments') }}" class="nav-item">
+                <span class="nav-icon">💳</span><span class="nav-label">Paiements</span>
+            </a>
+            <a href="{{ url_for('admin.manage_sections') }}" class="nav-item">
+                <span class="nav-icon">📍</span><span class="nav-label">Sections</span>
+            </a>
+            <a href="{{ url_for('admin.media_list') }}" class="nav-item active">
+                <span class="nav-icon">🖼️</span><span class="nav-label">Médiathèque</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+                <span class="nav-icon">🚪</span><span class="nav-label">Déconnexion</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN ===== -->
+    <main class="admin-content">
+        <div class="content-header">
+            <div>
+                <h1>🖼️ Médiathèque</h1>
+                <p class="content-header-sub">Gérez les photos et vidéos de vos événements</p>
+            </div>
+            <span style="font-size:13px; color:rgba(180,200,255,0.45);">
+                {{ media_items|length }} média(s)
+            </span>
+        </div>
+
+        <!-- ===== FORMULAIRE AJOUT ===== -->
+        <div class="upload-card">
+            <h2>➕ Ajouter un média</h2>
+
+            <!-- Onglets Image / Vidéo -->
+            <div class="form-tabs">
+                <button class="form-tab active" onclick="switchTab('image', this)">📷 Image</button>
+                <button class="form-tab" onclick="switchTab('video', this)">▶️ Vidéo (YouTube)</button>
+                <button class="form-tab" onclick="switchTab('multi', this)">📁 Multi-upload</button>
+            </div>
+
+            <!-- Formulaire image -->
+            <form id="form-image" method="POST" action="{{ url_for('admin.media_upload') }}" enctype="multipart/form-data">
+                <input type="hidden" name="media_type" value="image">
+                <div class="upload-form-grid">
+                    <div class="form-group">
+                        <label>Titre *</label>
+                        <input type="text" name="title" required placeholder="Ex : Assemblée Générale 2026">
+                    </div>
+                    <div class="form-group">
+                        <label>Nom de l'événement</label>
+                        <input type="text" name="event_name" placeholder="Ex : AG Annuelle, Conférence…">
+                    </div>
+                    <div class="form-group">
+                        <label>Date de l'événement</label>
+                        <input type="date" name="event_date">
+                    </div>
+                    <div class="form-group">
+                        <label>Fichier image *</label>
+                        <input type="file" name="file" accept="image/*" required>
+                    </div>
+                    <div class="form-group full">
+                        <label>Description</label>
+                        <textarea name="description" placeholder="Description optionnelle…"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn-upload">📤 Uploader l'image</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Formulaire vidéo -->
+            <form id="form-video" method="POST" action="{{ url_for('admin.media_upload') }}" enctype="multipart/form-data" style="display:none;">
+                <input type="hidden" name="media_type" value="video">
+                <div class="upload-form-grid">
+                    <div class="form-group">
+                        <label>Titre *</label>
+                        <input type="text" name="title" required placeholder="Ex : Discours du Président">
+                    </div>
+                    <div class="form-group">
+                        <label>Nom de l'événement</label>
+                        <input type="text" name="event_name" placeholder="Ex : AG Annuelle, Conférence…">
+                    </div>
+                    <div class="form-group">
+                        <label>Date de l'événement</label>
+                        <input type="date" name="event_date">
+                    </div>
+                    <div class="form-group full">
+                        <label>Fichier vidéo * <span style="font-weight:400;color:rgba(180,200,255,0.45);text-transform:none;">(MP4, MOV, AVI, WEBM)</span></label>
+                        <input type="file" name="file" accept="video/*" required>
+                    </div>
+                    <div class="form-group full">
+                        <label>Description</label>
+                        <textarea name="description" placeholder="Description optionnelle…"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn-upload">▶️ Ajouter la vidéo</button>
+                    </div>
+                </div>
+            </form>
+            <!-- Formulaire multi-upload -->
+            <form id="form-multi" method="POST" action="{{ url_for('admin.media_upload_batch') }}" enctype="multipart/form-data" style="display:none;" onsubmit="return validateMulti()">
+                <div class="upload-form-grid">
+                    <div class="form-group">
+                        <label>Nom de l'événement</label>
+                        <input type="text" name="event_name" placeholder="Ex : AG Annuelle, Conférence…">
+                    </div>
+                    <div class="form-group">
+                        <label>Date de l'événement</label>
+                        <input type="date" name="event_date">
+                    </div>
+                    <div class="form-group full">
+                        <label>Fichiers (images &amp; vidéos) *</label>
+                        <div class="multi-drop-zone" id="multiDropZone" onclick="document.getElementById('multiFileInput').click()">
+                            <span class="drop-icon">📂</span>
+                            <p>Cliquez pour sélectionner ou glissez vos fichiers ici</p>
+                            <small>Images : PNG, JPG, GIF, WEBP — Vidéos : MP4, MOV, AVI, WEBM</small>
+                        </div>
+                        <input type="file" id="multiFileInput" name="files" multiple
+                               accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/quicktime,video/x-msvideo,video/webm"
+                               style="display:none;" onchange="handleMultiFiles(this.files)">
+                        <div class="multi-count" id="multiCount"></div>
+                        <div class="multi-file-list" id="multiFileList"></div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn-upload">📤 Uploader tous les fichiers</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ===== GRILLE DES MÉDIAS ===== -->
+        {% if media_items %}
+        <div class="media-grid">
+            {% for item in media_items %}
+            <div class="media-card {% if not item.is_published %}unpublished{% endif %}">
+
+                <!-- Aperçu -->
+                {% if item.media_type == 'image' and item.file_path %}
+                    <img src="{{ url_for('static', filename=item.file_path) }}" alt="{{ item.title }}" class="media-thumb">
+                {% elif item.media_type == 'video' and item.file_path %}
+                    <video class="media-thumb" controls preload="metadata">
+                        <source src="{{ url_for('static', filename=item.file_path) }}">
+                    </video>
+                {% elif item.media_type == 'video' and item.video_url %}
+                    <div class="media-video-thumb">▶️</div>
+                {% else %}
+                    <div class="media-video-thumb">🖼️</div>
+                {% endif %}
+
+                <div class="media-card-body">
+                    <p class="media-card-title" title="{{ item.title }}">{{ item.title }}</p>
+                    {% if item.event_name %}
+                        <p class="media-card-event">📅 {{ item.event_name }}{% if item.event_date %} — {{ item.event_date.strftime('%d/%m/%Y') }}{% endif %}</p>
+                    {% endif %}
+                    <p class="media-card-meta">
+                        <span class="badge-type {% if item.media_type == 'image' %}badge-image{% else %}badge-video{% endif %}">
+                            {{ '🖼 Image' if item.media_type == 'image' else '▶ Vidéo' }}
+                        </span>
+                        <span class="badge-type {% if item.is_published %}badge-published{% else %}badge-draft{% endif %}">
+                            {{ 'Publié' if item.is_published else 'Masqué' }}
+                        </span>
+                    </p>
+                    <div class="media-card-actions">
+                        <form method="POST" action="{{ url_for('admin.media_toggle', media_id=item.id) }}" style="flex:1;">
+                            <button type="submit" class="btn-sm btn-toggle" style="width:100%;">
+                                {{ '🙈 Masquer' if item.is_published else '👁 Publier' }}
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('admin.media_delete', media_id=item.id) }}" style="flex:1;"
+                              onsubmit="return confirm('Supprimer ce média ?');">
+                            <button type="submit" class="btn-sm btn-delete" style="width:100%;">🗑 Supprimer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div style="font-size:56px;">🖼️</div>
+            <p>Aucun média pour l'instant.<br>Ajoutez vos premières photos ou vidéos ci-dessus.</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+
+<script>
+function switchTab(type, btn) {
+    document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('form-image').style.display = type === 'image' ? '' : 'none';
+    document.getElementById('form-video').style.display  = type === 'video'  ? '' : 'none';
+    document.getElementById('form-multi').style.display  = type === 'multi'  ? '' : 'none';
+}
+
+// ===== MULTI-UPLOAD =====
+let selectedFiles = [];
+
+function handleMultiFiles(fileList) {
+    const newFiles = Array.from(fileList);
+    newFiles.forEach(f => {
+        if (!selectedFiles.find(sf => sf.name === f.name && sf.size === f.size)) {
+            selectedFiles.push(f);
+        }
+    });
+    renderFileList();
+}
+
+function renderFileList() {
+    const list = document.getElementById('multiFileList');
+    const count = document.getElementById('multiCount');
+    count.textContent = selectedFiles.length ? `${selectedFiles.length} fichier(s) sélectionné(s)` : '';
+    list.innerHTML = '';
+
+    // On reconstruit le DataTransfer pour garder la synchronisation avec l'input
+    const dt = new DataTransfer();
+
+    selectedFiles.forEach((file, idx) => {
+        dt.items.add(file);
+        const isVideo = file.type.startsWith('video/');
+        const row = document.createElement('div');
+        row.className = 'multi-file-row';
+
+        // Aperçu
+        const preview = document.createElement(isVideo ? 'div' : 'img');
+        if (isVideo) {
+            preview.className = 'multi-file-icon';
+            preview.textContent = '▶️';
+        } else {
+            preview.className = 'multi-file-preview';
+            preview.src = URL.createObjectURL(file);
+            preview.alt = file.name;
+        }
+
+        // Champ titre
+        const titleInput = document.createElement('input');
+        titleInput.type = 'text';
+        titleInput.name = 'titles';
+        titleInput.placeholder = file.name.replace(/\.[^.]+$/, '');
+        titleInput.value = file.name.replace(/\.[^.]+$/, '');
+
+        // Bouton supprimer
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'multi-file-remove';
+        removeBtn.textContent = '✕';
+        removeBtn.title = 'Retirer ce fichier';
+        removeBtn.onclick = () => { selectedFiles.splice(idx, 1); renderFileList(); };
+
+        row.appendChild(preview);
+        row.appendChild(titleInput);
+        row.appendChild(removeBtn);
+        list.appendChild(row);
+    });
+
+    document.getElementById('multiFileInput').files = dt.files;
+}
+
+function validateMulti() {
+    if (selectedFiles.length === 0) {
+        alert('Veuillez sélectionner au moins un fichier.');
+        return false;
+    }
+    return true;
+}
+
+// Drag & drop
+const dropZone = document.getElementById('multiDropZone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    handleMultiFiles(e.dataTransfer.files);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NOBIEL - Plateforme Associative{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-brand">
+                <a href="{{ url_for('main.index') }}" class="logo">
+                    <img src="{{ url_for('static', filename='images/Nobiel.png') }}" alt="NOBIEL Logo" class="logo-img">
+                </a>
+            </div>
+            <button class="navbar-toggle" id="navToggle" aria-label="Ouvrir le menu" aria-expanded="false">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+            <div class="navbar-collapse" id="navCollapse">
+                <ul class="navbar-menu">
+                    <li><a href="{{ url_for('main.index') }}">Accueil</a></li>
+                    <li><a href="{{ url_for('articles.list_articles') }}">Actualités</a></li>
+                    {% if current_user.is_authenticated and current_user.role == 'admin' %}
+                        <li><a href="{{ url_for('members.list_members') }}">Annuaire</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('members.join') }}">Adhérer</a></li>
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.role in ['admin', 'moderator'] %}
+                            <li><a href="{{ url_for('admin.dashboard') }}" style="color: #ff6b6b;"><strong>🛠️ Admin</strong></a></li>
+                        {% endif %}
+                        <li><a href="{{ url_for('main.about') }}">À Propos</a></li>
+                        <li><a href="{{ url_for('main.account') }}">👤 Mon Compte</a></li>
+                        <li><a href="{{ url_for('auth.logout') }}">Déconnexion ({{ current_user.username }})</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('auth.login') }}">Connexion</a></li>
+                        <!--<li><a href="{{ url_for('auth.register') }}">Inscription</a></li>-->
+                    {% endif %}
+                </ul>
+                <a href="{{ url_for('main.donate') }}" class="btn-donation-navbar">❤️ Faire un don</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                    <button type="button" class="close">&times;</button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Contenu Principal -->
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <!-- Section principale : deux colonnes -->
+        <div class="footer-main">
+            <div class="container">
+                <div class="footer-grid">
+
+                    <!-- Colonne gauche : Contactez-nous -->
+                    <div class="footer-contact">
+                        <h3 class="footer-col-title">Contactez-nous</h3>
+                        <div class="footer-title-bar"></div>
+                        <div class="footer-contact-item">
+                            <span class="footer-icon"><i class="fas fa-map-marker-alt"></i></span>
+                            <div>
+                                <strong>Siège Social</strong>
+                                <p>Abidjan, Côte d'Ivoire</p>
+                            </div>
+                        </div>
+                        <div class="footer-contact-item">
+                            <span class="footer-icon"><i class="fas fa-envelope"></i></span>
+                            <div>
+                                <strong>Email</strong>
+                                <p>contact@nobiel.org</p>
+                            </div>
+                        </div>
+                        <div class="footer-contact-item">
+                            <span class="footer-icon"><i class="fas fa-phone"></i></span>
+                            <div>
+                                <strong>Téléphone</strong>
+                                <p>+225 00 00 00 00 00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Colonne droite : Newsletter (carte blanche) -->
+                    {% if not request.path.startswith('/admin') %}
+                    <div class="footer-newsletter-wrap">
+                        <div class="footer-newsletter-card">
+                            <h3 class="footer-col-title footer-col-title--dark">Newsletter</h3>
+                            <div class="footer-title-bar footer-title-bar--dark"></div>
+                            <p>Restez informé de toutes les actualités de l'association NOBIEL. Inscrivez-vous pour recevoir nos dernières nouvelles directement dans votre boîte mail.</p>
+                            <div class="footer-newsletter-form">
+                                <input type="email" id="footerNewsletterEmail" placeholder="Votre adresse email..." aria-label="Adresse email newsletter">
+                                <button type="button" id="footerNewsletterBtn" onclick="submitNewsletter()"><span>S'inscrire</span> <i class="fas fa-paper-plane"></i></button>
+                            </div>
+                            <p id="footerNewsletterMsg" style="margin:8px 0 0;font-size:13px;display:none;"></p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Séparateur -->
+        <div class="footer-separator"></div>
+
+        <!-- Liens de navigation -->
+        <div class="footer-nav">
+            <div class="container">
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('main.index') }}">Accueil</a></li>
+                    <li><a href="{{ url_for('main.about') }}">À Propos</a></li>
+                    <li><a href="{{ url_for('members.join') }}">Adhérer</a></li>
+                    <li><a href="{{ url_for('articles.list_articles') }}">Actualités</a></li>
+                    <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+                </ul>
+
+                <!-- Icônes réseaux sociaux -->
+                <div class="footer-social">
+                    <a href="#" class="footer-social-icon" aria-label="Instagram" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="footer-social-icon" aria-label="Facebook" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="footer-social-icon" aria-label="Twitter" target="_blank" rel="noopener"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="footer-social-icon" aria-label="WhatsApp" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i></a>
+                </div>
+
+                <p class="footer-tagline">NOUS CONTACTER</p>
+            </div>
+        </div>
+
+        <!-- Barre de copyright -->
+        <div class="footer-bottom">
+            <div class="container">
+                <p>&copy; 2026 NOBIEL - Tous droits réservés</p>
+                <ul class="footer-bottom-links">
+                    <li><a href="{{ url_for('main.index') }}">Accueil</a></li>
+                    <li><a href="{{ url_for('main.about') }}">À Propos</a></li>
+                    <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Three.js r128 — WebGL 3D -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" crossorigin="anonymous"></script>
+    <!-- GSAP 3 + ScrollTrigger — animations haute performance -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" crossorigin="anonymous"></script>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+    function submitNewsletter() {
+        const input = document.getElementById('footerNewsletterEmail');
+        const btn   = document.getElementById('footerNewsletterBtn');
+        const msg   = document.getElementById('footerNewsletterMsg');
+        const email = input.value.trim();
+        if (!email) { input.focus(); return; }
+
+        btn.disabled = true;
+        fetch('/newsletter/subscribe', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email})
+        })
+        .then(r => r.json())
+        .then(data => {
+            msg.style.display = 'block';
+            msg.style.color   = data.success ? '#4ade80' : '#f87171';
+            msg.textContent   = data.message;
+            if (data.success) { input.value = ''; }
+        })
+        .catch(() => {
+            msg.style.display = 'block';
+            msg.style.color   = '#f87171';
+            msg.textContent   = 'Une erreur est survenue. Réessayez.';
+        })
+        .finally(() => { btn.disabled = false; });
+    }
+    document.getElementById('footerNewsletterEmail')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') submitNewsletter();
+    });
+    </script>
+    <script>
+    // Injection automatique du token CSRF dans tous les formulaires POST
+    (function() {
+        const token = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (!token) return;
+        document.querySelectorAll('form[method="POST"], form[method="post"]').forEach(function(form) {
+            if (!form.querySelector('input[name="csrf_token"]')) {
+                var input = document.createElement('input');
+                input.type  = 'hidden';
+                input.name  = 'csrf_token';
+                input.value = token;
+                form.appendChild(input);
+            }
+        });
+    })();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

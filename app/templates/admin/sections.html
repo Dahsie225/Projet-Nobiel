@@ -1,0 +1,459 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Sections Régionales - Nobiel Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+    <!-- SIDEBAR (même design que dashboard) -->
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon"></div>
+            <div class="brand-text">
+                <span class="brand-title">RÉSEAU NATIONAL</span>
+                <span class="brand-sub">NOBIEL Admin</span>
+            </div>
+        </div>
+
+        <div class="sidebar-section-label">NAVIGATION</div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-item">
+                <span class="nav-icon">📊</span><span class="nav-label">Tableau de bord</span>
+            </a>
+            <a href="{{ url_for('main.index') }}" class="nav-item">
+                <span class="nav-icon">🏠</span><span class="nav-label">Accueil</span>
+            </a>
+            <a href="{{ url_for('admin.manage_articles') }}" class="nav-item">
+                <span class="nav-icon">📰</span><span class="nav-label">Actualités</span>
+            </a>
+            <a href="{{ url_for('admin.manage_members') }}" class="nav-item">
+                <span class="nav-icon">👥</span><span class="nav-label">Membres</span>
+            </a>
+            <a href="{{ url_for('admin.manage_adhesions') }}" class="nav-item">
+                <span class="nav-icon">📋</span><span class="nav-label">Adhésions</span>
+            </a>
+            <a href="{{ url_for('admin.manage_payments') }}" class="nav-item">
+                <span class="nav-icon">💳</span><span class="nav-label">Paiements</span>
+            </a>
+            <a href="{{ url_for('admin.manage_sections') }}" class="nav-item active">
+                <span class="nav-icon">📍</span><span class="nav-label">Sections</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('auth.logout') }}" class="nav-item logout">
+                <span class="nav-icon">🚪</span><span class="nav-label">Déconnexion</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="admin-content">
+
+        <!-- Breadcrumb -->
+        <div class="page-breadcrumb">
+            <a href="{{ url_for('admin.dashboard') }}">Tableau de bord</a>
+            <span>›</span>
+            <span>Sections Régionales</span>
+        </div>
+
+        <!-- Page header -->
+        <div class="sections-page-header">
+            <div class="sph-icon">📍</div>
+            <div>
+                <h1>Responsables des Sections Régionales</h1>
+                <p>Gérez et ou modifiez les rôles des sections depuis cette interface centralisée.</p>
+            </div>
+        </div>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Grille des sections -->
+        <div class="sections-grid">
+            {% for section in sections_data %}
+            <div class="section-admin-card {% if section.is_national %}national{% endif %}">
+
+                <div class="sac-header">
+                    <div class="sac-icon-wrap {% if section.is_national %}sac-icon-national{% endif %}">
+                        {{ section.icon }}
+                    </div>
+                    <div class="sac-title-block">
+                        <div class="sac-city">{{ section.city }}</div>
+                        {% if section.is_national %}
+                            <span class="sac-badge national-badge">Siège National</span>
+                        {% else %}
+                            <span class="sac-badge regional-badge">Section Régionale</span>
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('members.section_detail', city=section.city) }}"
+                       class="sac-view-link" target="_blank" title="Voir la page publique">↗</a>
+                </div>
+
+                <!-- Responsables actuels -->
+                <div class="current-leaders">
+                    {% for role_key in ['president', 'vice_president', 'secretary', 'treasurer'] %}
+                        {% if role_key in section.leaders %}
+                        <div class="leader-chip">
+                            <span class="leader-chip-avatar">
+                                {{ section.leaders[role_key].first_name[0] }}{{ section.leaders[role_key].last_name[0] }}
+                            </span>
+                            <span class="leader-chip-info">
+                                <strong>{{ section.leaders[role_key].full_name }}</strong>
+                                <small>{{ role_labels[role_key] }}</small>
+                            </span>
+                            <form method="POST" action="{{ url_for('admin.assign_section_role') }}" style="display:inline;">
+                                <input type="hidden" name="city" value="{{ section.city }}">
+                                <input type="hidden" name="member_id" value="{{ section.leaders[role_key].id }}">
+                                <input type="hidden" name="role" value="member">
+                                <button type="submit" class="leader-chip-remove" title="Retirer ce rôle">✕</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    {% if not section.leaders %}
+                        <div class="no-leader-msg">Aucun responsable désigné</div>
+                    {% endif %}
+                </div>
+
+                <!-- Nombre de membres -->
+                <div class="members-count-bar">
+                    <span>👥 {{ section.members|length }} membre(s) actif(s)</span>
+                </div>
+
+                <!-- Formulaire d'assignation -->
+                {% if section.members %}
+                <form method="POST" action="{{ url_for('admin.assign_section_role') }}" class="assign-form">
+                    <input type="hidden" name="city" value="{{ section.city }}">
+                    <div class="assign-form-row">
+                        <select name="member_id" class="assign-select" required>
+                            <option value="" disabled selected>Choisir un membre…</option>
+                            {% for m in section.members %}
+                            <option value="{{ m.id }}">{{ m.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <select name="role" class="assign-select assign-select-role" required>
+                            <option value="" disabled selected>Rôle…</option>
+                            <option value="president">Président</option>
+                            <option value="vice_president">Vice-Président</option>
+                            <option value="secretary">Secrétaire</option>
+                            <option value="treasurer">Trésorier</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="assign-btn">Assigner</button>
+                </form>
+                {% else %}
+                    <p class="no-members-msg">Aucun membre actif dans cette section.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+    </main>
+</div>
+
+<style>
+:root {
+    --purple:      #8b5cf6;
+    --purple-dark: #7c3aed;
+    --purple-light:rgba(139,92,246,0.15);
+    --sidebar-w:   280px;
+    --bg-page:     #0d0f1e;
+    --bg-card:     #151728;
+    --border:      rgba(255,255,255,0.07);
+    --text-main:   #e2e8f0;
+    --text-muted:  #64748b;
+    --text-dim:    #94a3b8;
+}
+
+body { background: var(--bg-page) !important; color: var(--text-main) !important; }
+.navbar { background: #0d0f1e !important; border-bottom: 1px solid var(--border) !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; z-index: 300 !important; margin-bottom: 0 !important; }
+.footer { background: #0d0f1e !important; border-top: 1px solid var(--border) !important; }
+main.container { background: transparent !important; }
+
+.dashboard-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg-page);
+    padding-top: 82px;
+}
+
+/* SIDEBAR */
+.admin-sidebar {
+    width: var(--sidebar-w);
+    background: #11132a;
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 82px; left: 0;
+    height: calc(100vh - 82px);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+}
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+}
+.brand-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(124,58,237,0.4));
+    border: 1px solid rgba(139,92,246,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; flex-shrink: 0;
+}
+.brand-text { display: flex; flex-direction: column; }
+.brand-title { font-size: 13px; font-weight: 800; color: #e2e8f0; letter-spacing: 0.5px; }
+.brand-sub   { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.sidebar-section-label {
+    font-size: 10px; font-weight: 700; color: var(--text-muted);
+    letter-spacing: 1.2px; text-transform: uppercase;
+    padding: 20px 24px 8px;
+}
+.sidebar-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; flex: 1; }
+.nav-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 16px; border-radius: 12px;
+    color: var(--text-dim); text-decoration: none;
+    font-size: 14px; font-weight: 500; transition: all 0.2s;
+}
+.nav-item:hover { background: rgba(139,92,246,0.12); color: #a78bfa; text-decoration: none; }
+.nav-item.active {
+    background: rgba(139,92,246,0.18);
+    color: #c4b5fd; font-weight: 700;
+    border-left: 3px solid var(--purple);
+}
+.nav-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
+.sidebar-footer { padding: 12px 12px 24px; border-top: 1px solid var(--border); }
+.nav-item.logout { color: #f87171; }
+.nav-item.logout:hover { background: rgba(248,113,113,0.1); color: #fca5a5; }
+
+/* MAIN */
+.admin-content {
+    flex: 1;
+    margin-left: var(--sidebar-w);
+    padding: 36px 40px;
+    min-height: 100vh;
+}
+
+/* Breadcrumb */
+.page-breadcrumb {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.page-breadcrumb a { color: #a78bfa; text-decoration: none; font-weight: 600; }
+.page-breadcrumb a:hover { color: #c4b5fd; text-decoration: none; }
+
+/* Page header */
+.sections-page-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 36px;
+}
+.sph-icon { font-size: 48px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.sections-page-header h1 {
+    font-size: 30px;
+    font-weight: 800;
+    color: #a78bfa;
+    margin: 0 0 6px;
+}
+.sections-page-header p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+/* Alerts */
+.alert {
+    padding: 12px 18px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    font-weight: 500;
+}
+.alert-success { background: rgba(74,222,128,0.1); color: #4ade80; border-left: 3px solid #4ade80; }
+.alert-danger   { background: rgba(248,113,113,0.1); color: #f87171; border-left: 3px solid #f87171; }
+.alert-warning  { background: rgba(251,191,36,0.1); color: #fbbf24; border-left: 3px solid #fbbf24; }
+
+/* SECTIONS GRID */
+.sections-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+}
+
+/* SECTION CARD */
+.section-admin-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+}
+.section-admin-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--purple), #06b6d4);
+    opacity: 0.5;
+}
+.section-admin-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(139,92,246,0.2);
+    border-color: rgba(139,92,246,0.4);
+}
+.section-admin-card.national {
+    border-color: rgba(139,92,246,0.35);
+}
+.section-admin-card.national::before {
+    background: linear-gradient(90deg, #4ade80, #06b6d4);
+}
+
+/* Card header */
+.sac-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+.sac-icon-wrap {
+    width: 62px; height: 62px;
+    border-radius: 16px;
+    background: rgba(139,92,246,0.12);
+    border: 1px solid rgba(139,92,246,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; flex-shrink: 0;
+}
+.sac-icon-wrap.sac-icon-national {
+    background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.2));
+    border-color: rgba(34,197,94,0.3);
+}
+.sac-title-block { flex: 1; }
+.sac-city { font-size: 22px; font-weight: 800; color: var(--text-main); line-height: 1.2; }
+.sac-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 5px;
+}
+.national-badge { background: rgba(34,197,94,0.15); color: #4ade80; }
+.regional-badge { background: rgba(139,92,246,0.15); color: #a78bfa; }
+.sac-view-link {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 16px; font-weight: 700;
+    text-decoration: none; transition: all 0.2s;
+    flex-shrink: 0;
+}
+.sac-view-link:hover { background: rgba(139,92,246,0.2); color: #a78bfa; text-decoration: none; }
+
+/* Barre membres */
+.members-count-bar {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 6px 0 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 14px;
+}
+
+/* Leaders */
+.current-leaders {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-bottom: 16px; min-height: 40px;
+}
+.leader-chip {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 10px;
+}
+.leader-chip-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple), #7c3aed);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; flex-shrink: 0;
+}
+.leader-chip-info { flex: 1; display: flex; flex-direction: column; line-height: 1.3; }
+.leader-chip-info strong { font-size: 13px; color: var(--text-main); }
+.leader-chip-info small  { font-size: 11px; color: #a78bfa; font-weight: 600; }
+.leader-chip-remove {
+    background: none; border: none;
+    color: #f87171; cursor: pointer;
+    font-size: 12px; width: 24px; height: 24px;
+    border-radius: 6px; opacity: 0.5; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+}
+.leader-chip-remove:hover { opacity: 1; background: rgba(248,113,113,0.12); }
+.no-leader-msg {
+    font-size: 12px; color: #fbbf24;
+    background: rgba(251,191,36,0.08);
+    padding: 9px 12px; border-radius: 8px;
+    border-left: 3px solid #f59e0b;
+}
+.no-members-msg { font-size: 12px; color: var(--text-muted); }
+
+/* Formulaire */
+.assign-form { margin-top: 4px; }
+.assign-form-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.assign-select {
+    flex: 1; min-width: 0;
+    padding: 9px 12px;
+    border: 1.5px solid rgba(139,92,246,0.25);
+    border-radius: 10px;
+    font-size: 12.5px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text-main);
+    outline: none; cursor: pointer; transition: border-color 0.2s;
+}
+.assign-select:focus { border-color: var(--purple); }
+.assign-select option { background: #1a1d2e; color: #e2e8f0; }
+.assign-select-role { max-width: 130px; flex: none; }
+.assign-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--purple), #7c3aed);
+    color: white; border: none;
+    padding: 11px 0; border-radius: 10px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s; letter-spacing: 0.3px;
+}
+.assign-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(139,92,246,0.45);
+}
+
+/* RESPONSIVE */
+@media (max-width: 1280px) { .sections-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px) {
+    .admin-sidebar { display: none; }
+    .admin-content { margin-left: 0; padding: 20px; }
+    .sections-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+    .assign-form-row { flex-direction: column; }
+    .assign-select-role { max-width: 100%; }
+}
+</style>
+{% endblock %}

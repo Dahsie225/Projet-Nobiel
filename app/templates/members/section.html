@@ -1,0 +1,873 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Section {{ city }} - Nobiel{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== RESET PAGE POUR LE THEME HUD ===== */
+body {
+    background: #060d1e !important;
+    color: #fff !important;
+}
+.navbar {
+    background: rgba(6,13,30, 0.92) !important;
+    border-bottom: 1px solid rgba(59,130,246, 0.18) !important;
+}
+main.container {
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+.footer {
+    background: #060d1e !important;
+    border-top: 1px solid rgba(253,224,71,0.2) !important;
+}
+
+/* ===== CONTENEUR PRINCIPAL ===== */
+.hud-page {
+    min-height: calc(100vh - 80px);
+    background: linear-gradient(135deg, #060d1e 0%, #0a1628 35%, #1e3a6e 65%, #7c4a00 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* ===== PLUIE BINAIRE (canvas) ===== */
+#binaryCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ===== GRILLE SCANLINES ===== */
+.hud-page::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(59,130,246, 0.015) 3px,
+        rgba(59,130,246, 0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ===== BREADCRUMB ===== */
+.hud-breadcrumb {
+    position: relative;
+    z-index: 10;
+    padding: 14px 40px;
+    background: linear-gradient(90deg, rgba(6,13,40,0.85) 0%, rgba(10,22,60,0.75) 60%, rgba(120,70,0,0.3) 100%);
+    border-bottom: 1px solid rgba(253,224,71,0.3);
+    font-size: 13px;
+    color: rgba(147,197,253, 0.7);
+    letter-spacing: 0.5px;
+}
+.hud-breadcrumb a {
+    color: #60a5fa;
+    text-decoration: none;
+}
+.hud-breadcrumb a:hover { color: #fde047; }
+.hud-breadcrumb span { margin: 0 8px; opacity: 0.5; }
+
+/* ===== LAYOUT PRINCIPAL ===== */
+.hud-layout {
+    position: relative;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: 480px 1fr;
+    min-height: 75vh;
+    align-items: center;
+    gap: 0;
+}
+
+/* ===== COLONNE GAUCHE : HOLOGRAMME ===== */
+.hud-left {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 30px;
+    height: 100%;
+    min-height: 520px;
+}
+
+/* Cylindre holographique */
+.holo-cylinder {
+    position: relative;
+    width: 200px;
+    height: 300px;
+    margin: 0 auto 30px;
+}
+
+/* Corps du cylindre */
+.holo-cylinder-body {
+    position: absolute;
+    left: 0; right: 0;
+    top: 20px; bottom: 20px;
+    background: linear-gradient(180deg,
+        rgba(59,130,246, 0.04) 0%,
+        rgba(59,130,246, 0.18) 40%,
+        rgba(37,99,235, 0.22) 60%,
+        rgba(59,130,246, 0.06) 100%
+    );
+    border-left: 1px solid rgba(59,130,246, 0.25);
+    border-right: 1px solid rgba(59,130,246, 0.25);
+}
+
+/* Rayons verticaux internes */
+.holo-cylinder-body::before,
+.holo-cylinder-body::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, transparent, rgba(59,130,246,0.5), transparent);
+    animation: scanY 3s linear infinite;
+}
+.holo-cylinder-body::before { left: 30%; animation-delay: 0s; }
+.holo-cylinder-body::after  { left: 65%; animation-delay: 1.5s; }
+
+/* Anneau du haut */
+.holo-ring-top {
+    position: absolute;
+    top: 0; left: -10px; right: -10px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid rgba(253,224,71,0.85);
+    box-shadow: 0 0 22px rgba(253,224,71,0.65), inset 0 0 20px rgba(253,224,71,0.15);
+    background: rgba(253,224,71,0.06);
+    animation: pulseRing 2.5s ease-in-out infinite;
+}
+
+/* Anneau du bas */
+.holo-ring-bottom {
+    position: absolute;
+    bottom: 0; left: -10px; right: -10px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid rgba(253,224,71,0.75);
+    box-shadow: 0 0 20px rgba(253,224,71,0.55), inset 0 0 20px rgba(253,224,71,0.12);
+    background: rgba(253,224,71,0.05);
+    animation: pulseRing 2.5s ease-in-out infinite 0.5s;
+}
+
+/* Cercles orbite autour du cylindre */
+.holo-orbit {
+    position: absolute;
+    inset: -30px;
+    border-radius: 50%;
+    border: 1px dashed rgba(59,130,246,0.2);
+    animation: spinOrbit 12s linear infinite;
+}
+.holo-orbit::after {
+    content: '';
+    position: absolute;
+    width: 8px; height: 8px;
+    background: #fde047;
+    border-radius: 50%;
+    top: -4px; left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 14px #fde047, 0 0 28px rgba(253,224,71,0.5);
+}
+
+.holo-orbit-2 {
+    position: absolute;
+    inset: -55px;
+    border-radius: 50%;
+    border: 1px dashed rgba(59,130,246,0.12);
+    animation: spinOrbit 20s linear infinite reverse;
+}
+.holo-orbit-2::after {
+    content: '';
+    position: absolute;
+    width: 6px; height: 6px;
+    background: rgba(59,130,246,0.7);
+    border-radius: 50%;
+    bottom: -3px; left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 8px rgba(59,130,246,0.7);
+}
+
+/* Faisceau lumineux vers le bas */
+.holo-beam {
+    position: absolute;
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 80px;
+    background: linear-gradient(180deg, rgba(253,224,71,0.4) 0%, rgba(59,130,246,0.2) 60%, transparent 100%);
+    clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+    animation: beamPulse 2s ease-in-out infinite;
+}
+
+/* Titre holographique */
+.holo-title {
+    font-size: 42px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(59,130,246,0.6), 0 0 60px rgba(253,224,71,0.3);
+    line-height: 1.1;
+}
+.holo-subtitle {
+    margin-top: 10px;
+    font-size: 13px;
+    color: rgba(147,197,253,0.7);
+    letter-spacing: 2px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+/* Badge type */
+.holo-badge {
+    margin-top: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.35);
+    border-radius: 30px;
+    padding: 8px 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #60a5fa;
+    text-transform: uppercase;
+}
+
+/* Ligne connecteur gauche→droite */
+.hud-connector {
+    position: absolute;
+    top: 0; bottom: 0;
+    right: 0;
+    width: 2px;
+    background: linear-gradient(180deg, transparent, rgba(59,130,246,0.4) 30%, rgba(59,130,246,0.4) 70%, transparent);
+}
+.hud-connector-dot {
+    position: absolute;
+    right: -4px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #60a5fa;
+    box-shadow: 0 0 14px #60a5fa;
+    animation: blinkDot 2s ease-in-out infinite;
+}
+.hud-connector-dot:nth-child(1) { top: 28%; animation-delay: 0s; }
+.hud-connector-dot:nth-child(2) { top: 50%; animation-delay: 0.7s; }
+.hud-connector-dot:nth-child(3) { top: 72%; animation-delay: 1.4s; }
+
+/* ===== COLONNE DROITE : CARTES HUD ===== */
+.hud-right {
+    position: relative;
+    padding: 50px 50px 50px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Décorations HUD coin haut droit */
+.hud-deco-tr {
+    position: absolute;
+    top: 20px; right: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0.6;
+}
+.hud-deco-bar {
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #3b82f6);
+    border-radius: 2px;
+}
+.hud-deco-circle {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid #3b82f6;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px;
+    color: #3b82f6;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+.hud-deco-circle::after {
+    content: '';
+    position: absolute;
+    top: -100%; left: 0; right: 0;
+    height: 200%;
+    background: linear-gradient(0deg, transparent 45%, rgba(59,130,246,0.5) 50%, transparent 55%);
+    animation: scanRadar 3s linear infinite;
+}
+
+/* Stats inline */
+.hud-stats-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 4px;
+}
+.hud-stat {
+    flex: 1;
+    background: rgba(6,20,50, 0.55);
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 10px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+}
+.hud-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #fde047, #3b82f6, transparent);
+    animation: scanH 3s linear infinite;
+}
+.hud-stat-number {
+    font-size: 36px;
+    font-weight: 900;
+    color: #fde047;
+    text-shadow: 0 0 20px rgba(253,224,71,0.5);
+    line-height: 1;
+}
+.hud-stat-label {
+    font-size: 11px;
+    color: rgba(147,197,253,0.7);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 6px;
+}
+
+/* Cartes leaders */
+.hud-card {
+    background: rgba(6,13,40, 0.55);
+    border: 1px solid rgba(59,130,246, 0.28);
+    border-radius: 12px;
+    padding: 22px 28px;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+.hud-card:hover {
+    border-color: rgba(59,130,246,0.55);
+    box-shadow: 0 0 30px rgba(37,99,235,0.15);
+}
+/* Coin HUD */
+.hud-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 16px; height: 16px;
+    border-top: 2px solid #fde047;
+    border-left: 2px solid #fde047;
+}
+.hud-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 16px; height: 16px;
+    border-bottom: 2px solid #3b82f6;
+    border-right: 2px solid #3b82f6;
+}
+
+/* Ligne scan dans la carte */
+.hud-card-scan {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(59,130,246,0.6), transparent);
+    animation: scanH 4s linear infinite;
+}
+
+.hud-card-inner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.hud-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 2px solid rgba(59,130,246,0.5);
+    box-shadow: 0 0 16px rgba(59,130,246,0.25);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.hud-avatar-placeholder {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: rgba(15,23,42, 0.8);
+    border: 2px solid rgba(59,130,246,0.5);
+    box-shadow: 0 0 16px rgba(59,130,246,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: #3b82f6;
+    flex-shrink: 0;
+}
+
+.hud-card-info { flex: 1; }
+
+.hud-role-badge {
+    display: inline-block;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.4);
+    color: #60a5fa;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.hud-role-badge.president {
+    background: rgba(254,240,138,0.1);
+    border-color: rgba(254,240,138,0.5);
+    color: #fef08a;
+}
+
+.hud-member-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 4px;
+    text-shadow: 0 0 10px rgba(59,130,246,0.2);
+}
+.hud-member-type {
+    font-size: 12px;
+    color: rgba(147,197,253,0.6);
+    margin-bottom: 8px;
+}
+.hud-member-contact {
+    font-size: 12px;
+    color: rgba(59,130,246,0.75);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.hud-view-btn {
+    display: inline-block;
+    padding: 7px 18px;
+    background: rgba(253,224,71,0.12);
+    border: 1px solid rgba(253,224,71,0.55);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fef08a;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px rgba(253,224,71,0.15);
+}
+.hud-view-btn:hover {
+    background: rgba(253,224,71,0.28);
+    box-shadow: 0 0 20px rgba(253,224,71,0.45);
+    border-color: rgba(253,224,71,0.85);
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Empty state */
+.hud-empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: rgba(147,197,253,0.6);
+}
+.hud-empty .empty-icon { font-size: 48px; display: block; margin-bottom: 16px; }
+.hud-empty h3 { color: rgba(219,234,254,0.8); margin-bottom: 10px; }
+
+/* ===== BARRE ACTIONS ===== */
+.hud-actions {
+    position: relative;
+    z-index: 5;
+    background: rgba(3,7,25, 0.7);
+    border-top: 1px solid rgba(59,130,246,0.2);
+    padding: 30px 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.hud-actions-text h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 4px;
+}
+.hud-actions-text p {
+    font-size: 13px;
+    color: rgba(147,197,253,0.6);
+    margin: 0;
+}
+.hud-action-btns {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+.hud-btn-primary {
+    background: linear-gradient(135deg, rgba(29,78,216,0.3), rgba(30,64,175,0.4));
+    border: 1px solid rgba(59,130,246,0.5);
+    color: #60a5fa;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: all 0.25s;
+}
+.hud-btn-primary:hover {
+    background: rgba(37,99,235,0.25);
+    box-shadow: 0 0 24px rgba(59,130,246,0.35);
+    color: #fff;
+}
+.hud-btn-secondary {
+    background: transparent;
+    border: 1px solid rgba(59,130,246,0.3);
+    color: rgba(147,197,253,0.8);
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: all 0.25s;
+}
+.hud-btn-secondary:hover {
+    background: rgba(0,160,255,0.1);
+    border-color: rgba(59,130,246,0.5);
+    color: #60a5fa;
+}
+
+/* Déco bas droite */
+.hud-deco-br {
+    position: absolute;
+    bottom: 16px; right: 30px;
+    opacity: 0.5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.hud-deco-dots {
+    display: flex;
+    gap: 5px;
+}
+.hud-deco-dots span {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: rgba(59,130,246,0.5);
+    border: 1px solid rgba(59,130,246,0.7);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes pulseRing {
+    0%,100% { box-shadow: 0 0 22px rgba(253,224,71,0.65), inset 0 0 20px rgba(253,224,71,0.15); }
+    50%       { box-shadow: 0 0 45px rgba(253,224,71,0.95), inset 0 0 30px rgba(253,224,71,0.3); }
+}
+@keyframes spinOrbit {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+@keyframes beamPulse {
+    0%,100% { opacity: 0.6; }
+    50%      { opacity: 1; }
+}
+@keyframes scanY {
+    0%   { top: -10%; opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { top: 110%; opacity: 0; }
+}
+@keyframes scanH {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+@keyframes scanRadar {
+    0%   { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+}
+@keyframes blinkDot {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.2; }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+    .hud-layout {
+        grid-template-columns: 1fr;
+    }
+    .hud-left {
+        min-height: 340px;
+        padding: 40px 20px 30px;
+    }
+    .holo-cylinder { width: 140px; height: 200px; }
+    .hud-right { padding: 30px 20px; }
+    .hud-actions { padding: 24px 20px; }
+    .hud-deco-tr { display: none; }
+}
+@media (max-width: 600px) {
+    .hud-stats-row { flex-direction: column; }
+    .hud-card-inner { flex-direction: column; text-align: center; }
+    .hud-actions { flex-direction: column; text-align: center; }
+    .hud-action-btns { justify-content: center; }
+    .hud-breadcrumb { padding: 12px 16px; }
+    .holo-title { font-size: 28px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="hud-page">
+    <canvas id="binaryCanvas"></canvas>
+
+{# === DÉBUT HTML === #}
+{# Breadcrumb #}
+<div class="hud-breadcrumb">
+    <a href="{{ url_for('main.index') }}">Accueil</a>
+    <span>›</span>
+    <span>Sections Régionales</span>
+    <span>›</span>
+    <strong style="color: #3b82f6;">{{ city }}</strong>
+</div>
+
+{# Layout principal #}
+<div class="hud-layout">
+
+    {# ===== COLONNE GAUCHE : HOLOGRAMME ===== #}
+    <div class="hud-left">
+        {# Cylindre holographique #}
+        <div class="holo-cylinder">
+            <div class="holo-ring-top"></div>
+            <div class="holo-cylinder-body"></div>
+            <div class="holo-ring-bottom"></div>
+            <div class="holo-orbit"></div>
+            <div class="holo-orbit-2"></div>
+            <div class="holo-beam"></div>
+        </div>
+
+        <div class="holo-title">{{ city | upper }}</div>
+        <div class="holo-subtitle">{{ info.label }} — Côte d'Ivoire</div>
+
+        <div class="holo-badge">
+            {% if info.badge %}
+                {{ info.badge }}
+            {% else %}
+                📍 Section Régionale
+            {% endif %}
+        </div>
+
+        {# Ligne de connexion vers droite #}
+        <div class="hud-connector">
+            <div class="hud-connector-dot"></div>
+            <div class="hud-connector-dot"></div>
+            <div class="hud-connector-dot"></div>
+        </div>
+    </div>
+
+    {# ===== COLONNE DROITE : INFOS ===== #}
+    <div class="hud-right">
+
+        {# Décoration coin haut droit #}
+        <div class="hud-deco-tr">
+            <div class="hud-deco-bar" style="width:60px;"></div>
+            <div class="hud-deco-bar" style="width:30px;"></div>
+            <div class="hud-deco-circle">HUD</div>
+        </div>
+
+        {# Stats #}
+        <div class="hud-stats-row">
+            <div class="hud-stat">
+                <div class="hud-stat-number">{{ members_count }}</div>
+                <div class="hud-stat-label">Membres actifs</div>
+            </div>
+            <div class="hud-stat">
+                <div class="hud-stat-number">{{ leaders|length }}</div>
+                <div class="hud-stat-label">Responsable(s)</div>
+            </div>
+            <div class="hud-stat">
+                <div class="hud-stat-number">{{ members_count }}</div>
+                <div class="hud-stat-label">Membre(s) actif(s)</div>
+            </div>
+        </div>
+
+        {# Cartes leaders #}
+        {% if leaders %}
+            {% set president = leaders | selectattr('section_role', 'equalto', 'president') | list %}
+            {% set others    = leaders | rejectattr('section_role', 'equalto', 'president') | list %}
+
+            {% if president %}
+                {% set p = president[0] %}
+                <div class="hud-card">
+                    <div class="hud-card-scan"></div>
+                    <div class="hud-card-inner">
+                        {% if p.identity_photo %}
+                            <img src="{{ url_for('static', filename=p.identity_photo) }}"
+                                 alt="{{ p.full_name }}" class="hud-avatar">
+                        {% else %}
+                            <div class="hud-avatar-placeholder">{{ p.first_name[0] }}{{ p.last_name[0] }}</div>
+                        {% endif %}
+                        <div class="hud-card-info">
+                            <div class="hud-role-badge president">👑 {{ role_labels['president'] }}</div>
+                            <div class="hud-member-name">{{ p.full_name }}</div>
+                            <div class="hud-member-type">
+                                {% if p.membership_type == 'student' %}Étudiant
+                                {% elif p.membership_type == 'professional' %}Professionnel
+                                {% elif p.membership_type == 'partner' %}Partenaire
+                                {% elif p.membership_type == 'donor' %}Donateur
+                                {% else %}Membre{% endif %}
+                            </div>
+                            {% if current_user.is_authenticated %}
+                                <div class="hud-member-contact">
+                                    <span>✉ {{ p.email }}</span>
+                                    {% if p.phone %}<span>📞 {{ p.phone }}</span>{% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('members.view_member', member_id=p.id) }}" class="hud-view-btn">Profil ›</a>
+                        {% else %}
+                            <a href="{{ url_for('auth.login') }}" class="hud-view-btn">Connexion ›</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {% for m in others %}
+                <div class="hud-card">
+                    <div class="hud-card-scan"></div>
+                    <div class="hud-card-inner">
+                        {% if m.identity_photo %}
+                            <img src="{{ url_for('static', filename=m.identity_photo) }}"
+                                 alt="{{ m.full_name }}" class="hud-avatar">
+                        {% else %}
+                            <div class="hud-avatar-placeholder">{{ m.first_name[0] }}{{ m.last_name[0] }}</div>
+                        {% endif %}
+                        <div class="hud-card-info">
+                            <div class="hud-role-badge">
+                                {% if m.section_role == 'vice_president' %}⭐ {{ role_labels['vice_president'] }}
+                                {% elif m.section_role == 'secretary' %}📋 {{ role_labels['secretary'] }}
+                                {% elif m.section_role == 'treasurer' %}💼 {{ role_labels['treasurer'] }}
+                                {% else %}{{ m.section_role }}{% endif %}
+                            </div>
+                            <div class="hud-member-name">{{ m.full_name }}</div>
+                            <div class="hud-member-type">
+                                {% if m.membership_type == 'student' %}Étudiant
+                                {% elif m.membership_type == 'professional' %}Professionnel
+                                {% elif m.membership_type == 'partner' %}Partenaire
+                                {% elif m.membership_type == 'donor' %}Donateur
+                                {% else %}Membre{% endif %}
+                            </div>
+                            {% if current_user.is_authenticated %}
+                                <div class="hud-member-contact">
+                                    <span>✉ {{ m.email }}</span>
+                                    {% if m.phone %}<span>📞 {{ m.phone }}</span>{% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('members.view_member', member_id=m.id) }}" class="hud-view-btn">Profil ›</a>
+                        {% else %}
+                            <a href="{{ url_for('auth.login') }}" class="hud-view-btn">Connexion ›</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+
+        {% else %}
+            <div class="hud-empty">
+                <span class="empty-icon">🏗️</span>
+                <h3>Équipe en cours de constitution</h3>
+                <p>Les responsables de la section <strong>{{ city }}</strong> seront désignés prochainement.</p>
+            </div>
+        {% endif %}
+
+    </div>{# /hud-right #}
+</div>{# /hud-layout #}
+
+{# Barre d'actions #}
+<div class="hud-actions">
+    <div class="hud-actions-text">
+        <h3>Rejoindre la section {{ city }} ?</h3>
+        <p>Devenez membre actif et participez à la vie de votre section locale.</p>
+    </div>
+    <div class="hud-action-btns">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('members.list_members', city=city) }}" class="hud-btn-secondary">👥 Voir les membres</a>
+        {% endif %}
+        <a href="{{ url_for('members.join') }}" class="hud-btn-primary">⚡ Adhérer à la section</a>
+    </div>
+    <div class="hud-deco-br">
+        <div class="hud-deco-dots">
+            <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="hud-deco-bar" style="width:50px; background: linear-gradient(90deg, rgba(59,130,246,0.6), transparent);"></div>
+    </div>
+</div>
+
+</div>{# /hud-page #}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ===== PLUIE BINAIRE ===== */
+(function() {
+    const canvas = document.getElementById('binaryCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+        canvas.width  = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const fontSize = 13;
+    let cols = Math.floor(canvas.width / fontSize);
+    let drops = Array.from({length: cols}, () => Math.random() * -50);
+
+    function draw() {
+        ctx.fillStyle = 'rgba(6,13,30, 0.08)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = 'rgba(59,130,246, 0.65)';
+        ctx.font = fontSize + 'px monospace';
+
+        cols = Math.floor(canvas.width / fontSize);
+        if (drops.length < cols) {
+            drops = drops.concat(Array.from({length: cols - drops.length}, () => 0));
+        }
+
+        for (let i = 0; i < cols; i++) {
+            const char = Math.random() > 0.5 ? '1' : '0';
+            ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                drops[i] = 0;
+            }
+            drops[i]++;
+        }
+    }
+
+    setInterval(draw, 55);
+})();
+</script>
+{% endblock %}

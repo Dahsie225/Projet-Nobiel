@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}À Propos - Nobiel{% endblock %}
+
+{% block content %}
+<div class="dp-page">
+    <div class="dp-inner dp-inner--wide">
+
+        <a href="{{ url_for('main.index') }}" class="dp-back">← Retour à l'accueil</a>
+
+        <div class="dp-hero">
+            <h1>À Propos de NOBIEL</h1>
+            <p>L'Association des Élèves et Étudiants ressortissants de la région du Bounkani —
+            <strong style="color:#f59e0b;">vingt ans d'Amour, de Dynamisme et de Succès.</strong></p>
+        </div>
+
+        <div class="dp-grid-2" style="margin-bottom:24px;">
+            <div class="dp-card" style="text-align:center;">
+                <div style="font-size:2.5rem;font-weight:900;color:#f59e0b;">20+</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px;">Années d'existence</div>
+            </div>
+            <div class="dp-card" style="text-align:center;">
+                <div style="font-size:2.5rem;font-weight:900;color:#f59e0b;">6</div>
+                <div style="font-size:13px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px;">Sections régionales</div>
+            </div>
+        </div>
+
+        <div class="dp-card">
+            <p class="dp-card-title">Notre Mission</p>
+            <div class="dp-prose">
+                <p>Créer une plateforme numérique pour centraliser les activités et gérer les membres.</p>
+                <p>Promouvoir l'adhésion massive de nouveaux membres ; lutter pour l'insertion
+                socioprofessionnelle de ses diplômés ; créer des conditions favorables à l'apprentissage
+                et la promotion du tutorat ; favoriser la solidarité entre ses membres ;
+                défendre les intérêts physiques et moraux de ses membres sur le plan académique.</p>
+            </div>
+        </div>
+
+        <div class="dp-card">
+            <p class="dp-card-title">Notre Histoire</p>
+            <div class="dp-prose">
+                <p>Dans le cadre des activités comptant pour la célébration du vingtième anniversaire
+                de l'association, plusieurs axes de réflexion ont été dégagés afin de passer au crible
+                les différentes actions conduites durant ses deux décennies d'existence.</p>
+                <p>Le NOBIEL est identifié par la devise
+                <strong style="color:#f59e0b;">Amour – Dynamisme – Succès</strong> ;
+                un emblème constitué d'un arc représentant la culture des peuples du Bounkani,
+                d'un stylo symbole de l'instruction disposé en flèche, et d'un soleil levant à l'horizon.</p>
+                <h2>Les couleurs du NOBIEL</h2>
+                <p>Le <strong style="color:#f59e0b;">jaune</strong> représente l'énergie, le dynamisme
+                et l'intelligence. Le <strong style="color:#60a5fa;">bleu</strong> symbolise l'espoir
+                d'un succès et d'un développement radieux.</p>
+            </div>
+        </div>
+
+        <div class="dp-card">
+            <p class="dp-card-title">Notre Vision</p>
+            <div class="dp-prose">
+                <p>Démocratiser l'accès à la plateforme pour tous les territoires et faciliter le suivi
+                de l'adhésion, pour que chaque membre de la communauté Bounkani reste connecté à l'association.</p>
+            </div>
+            <div style="margin-top:24px;">
+                <a href="{{ url_for('members.join') }}" class="dp-btn dp-btn-primary">Rejoindre le NOBIEL →</a>
+                <a href="{{ url_for('main.sections_regionales') }}" class="dp-btn dp-btn-ghost" style="margin-left:12px;">Voir les sections</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

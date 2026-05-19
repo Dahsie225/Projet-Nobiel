@@ -1,0 +1,549 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Paiements - Nobiel{% endblock %}
+
+{% block content %}
+<div class="pay-page">
+
+    <!-- En-tête -->
+    <div class="pay-header">
+        <h1 class="pay-title">Gestion des Paiements</h1>
+        <a href="{{ url_for('admin.payment_report') }}" class="pay-report-btn">
+            Rapports
+        </a>
+    </div>
+
+    <!-- Cartes statistiques -->
+    <div class="pay-stats">
+        <div class="stat-card">
+            <div class="stat-left">
+                <div class="stat-number">{{ stats.total }}</div>
+                <div class="stat-label">Total Paiements</div>
+            </div>
+            <div class="stat-icon stat-icon--gray">
+                <i class="fas fa-coins"></i>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-left">
+                <div class="stat-number">{{ "%.0f"|format(stats.total_revenue) }} <span class="stat-unit">XOF</span></div>
+                <div class="stat-label">Revenus</div>
+            </div>
+            <div class="stat-icon stat-icon--gray">
+                <i class="fas fa-wallet"></i>
+            </div>
+        </div>
+        <div class="stat-card stat-card--green">
+            <div class="stat-left">
+                <div class="stat-number">{{ stats.paid }}</div>
+                <div class="stat-label">Payés</div>
+            </div>
+            <div class="stat-icon stat-icon--green">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+        <div class="stat-card stat-card--yellow">
+            <div class="stat-left">
+                <div class="stat-number">{{ stats.pending }}</div>
+                <div class="stat-label">En Attente</div>
+            </div>
+            <div class="stat-icon stat-icon--yellow">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="pay-filters">
+        <a href="{{ url_for('admin.manage_payments') }}"
+           class="filter-pill {% if not current_status %}filter-pill--active{% endif %}">
+            Tous
+        </a>
+        <a href="{{ url_for('admin.manage_payments', status='paid') }}"
+           class="filter-pill {% if current_status == 'paid' %}filter-pill--active{% endif %}">
+            Payés
+        </a>
+        <a href="{{ url_for('admin.manage_payments', status='pending') }}"
+           class="filter-pill {% if current_status == 'pending' %}filter-pill--active{% endif %}">
+            En Attente
+        </a>
+        <a href="{{ url_for('admin.manage_payments', status='cancelled') }}"
+           class="filter-pill {% if current_status == 'cancelled' %}filter-pill--active{% endif %}">
+            Annulés
+        </a>
+    </div>
+
+    <!-- Tableau -->
+    <div class="pay-table-wrap">
+        {% if payments.items %}
+        <table class="pay-table">
+            <thead>
+                <tr>
+                    <th>Membre</th>
+                    <th>Type Adhésion <span class="sort-icon">⇅</span></th>
+                    <th>Montant <span class="sort-icon">⇅</span></th>
+                    <th>Méthode <span class="sort-icon">⇅</span></th>
+                    <th>Date <span class="sort-icon">📅</span></th>
+                    <th>Statut <span class="sort-icon">✓</span></th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payments.items %}
+                <tr>
+                    <td>
+                        <div class="member-cell">
+                            <div class="member-avatar">
+                                {{ (payment.member.full_name if payment.member else 'N')[0]|upper }}
+                            </div>
+                            <div class="member-info">
+                                <div class="member-name">{{ payment.member.full_name if payment.member else 'N/A' }}</div>
+                                <div class="member-email">{{ payment.member.email if payment.member else '' }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ payment.adhesion_type }}</td>
+                    <td><strong class="amount-green">{{ "%.0f"|format(payment.amount) }} XOF</strong></td>
+                    <td>
+                        <span class="method-badge">
+                            <i class="fas fa-mobile-alt method-icon"></i>
+                            {{ payment.payment_method or '-' }}
+                        </span>
+                    </td>
+                    <td>{{ payment.created_at.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        {% if payment.payment_status == 'paid' %}
+                            <span class="status-badge status-paid">✓ Payé</span>
+                        {% elif payment.payment_status == 'pending' %}
+                            <span class="status-badge status-pending">⏳ En Attente</span>
+                        {% else %}
+                            <span class="status-badge status-cancelled">✗ Annulé</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if payment.payment_status != 'paid' %}
+                        <form method="POST"
+                              action="{{ url_for('admin.mark_payment_paid', adhesion_id=payment.id) }}"
+                              style="display:inline;">
+                            <button type="submit" class="action-btn action-btn--blue" title="Marquer comme payé">
+                                <i class="fas fa-external-link-alt"></i> Action
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="POST"
+                              action="{{ url_for('admin.mark_payment_pending', adhesion_id=payment.id) }}"
+                              style="display:inline;">
+                            <button type="submit" class="action-btn action-btn--icon" title="Marquer comme en attente">
+                                <i class="fas fa-sliders-h"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        {% if payments.pages > 1 %}
+        <div class="pay-pagination">
+            {% if payments.has_prev %}
+            <a class="page-btn" href="{{ url_for('admin.manage_payments', page=payments.prev_num, status=current_status, method=current_method) }}">‹ Précédent</a>
+            {% endif %}
+            {% for page_num in payments.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == payments.page %}
+                    <span class="page-btn page-btn--active">{{ page_num }}</span>
+                    {% else %}
+                    <a class="page-btn" href="{{ url_for('admin.manage_payments', page=page_num, status=current_status, method=current_method) }}">{{ page_num }}</a>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            {% if payments.has_next %}
+            <a class="page-btn" href="{{ url_for('admin.manage_payments', page=payments.next_num, status=current_status, method=current_method) }}">Suivant ›</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="pay-empty">Aucun paiement trouvé.</div>
+        {% endif %}
+    </div>
+
+    <a href="{{ url_for('admin.dashboard') }}" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Retour au Tableau de Bord
+    </a>
+</div>
+
+<style>
+.pay-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 36px 24px 60px;
+    background: #f8fafc;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ---- Header ---- */
+.pay-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.pay-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+}
+
+.pay-report-btn {
+    padding: 9px 22px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.pay-report-btn:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.12);
+}
+
+/* ---- Stat cards ---- */
+.pay-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 22px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border: 1px solid #e2e8f0;
+}
+
+.stat-card--green { background: #f0fdf4; border-color: #bbf7d0; }
+.stat-card--yellow { background: #fefce8; border-color: #fef08a; }
+
+.stat-number {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+
+.stat-unit {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.stat-icon--gray  { background: #f1f5f9; color: #94a3b8; }
+.stat-icon--green { background: #dcfce7; color: #16a34a; border: 1.5px solid #86efac; }
+.stat-icon--yellow{ background: #fef9c3; color: #ca8a04; border: 1.5px solid #fde047; }
+
+/* ---- Filter pills ---- */
+.pay-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.filter-pill {
+    padding: 8px 20px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.filter-pill:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    text-decoration: none;
+}
+
+.filter-pill--active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+/* ---- Table ---- */
+.pay-table-wrap {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+.pay-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pay-table thead tr {
+    background: #334155;
+}
+
+.pay-table thead th {
+    padding: 14px 18px;
+    color: #f1f5f9;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.sort-icon {
+    opacity: 0.55;
+    font-size: 11px;
+}
+
+.pay-table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+}
+
+.pay-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.pay-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.pay-table td {
+    padding: 16px 18px;
+    font-size: 14px;
+    color: #334155;
+    vertical-align: middle;
+}
+
+/* Member cell */
+.member-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.member-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.member-name {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 14px;
+}
+
+.member-email {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* Amount */
+.amount-green {
+    color: #16a34a;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+/* Method */
+.method-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #475569;
+}
+
+.method-icon {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-paid     { background: #dcfce7; color: #15803d; }
+.status-pending  { background: #fef9c3; color: #a16207; }
+.status-cancelled{ background: #fee2e2; color: #b91c1c; }
+
+/* Action buttons */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.action-btn--blue {
+    background: #3b82f6;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(59,130,246,0.25);
+}
+
+.action-btn--blue:hover {
+    background: #2563eb;
+    box-shadow: 0 4px 14px rgba(59,130,246,0.35);
+}
+
+.action-btn--icon {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 8px 12px;
+}
+
+.action-btn--icon:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+/* Pagination */
+.pay-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.page-btn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+}
+
+.page-btn:hover { background: #e2e8f0; text-decoration: none; }
+
+.page-btn--active {
+    background: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+}
+
+/* Empty */
+.pay-empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 15px;
+}
+
+/* Back button */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+}
+
+.back-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+    text-decoration: none;
+}
+
+@media (max-width: 900px) {
+    .pay-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .pay-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+    .pay-table-wrap {
+        overflow-x: auto;
+    }
+    .pay-table {
+        min-width: 700px;
+    }
+}
+</style>
+{% endblock %}

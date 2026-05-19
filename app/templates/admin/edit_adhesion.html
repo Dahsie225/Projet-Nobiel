@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Adhésions - Nobiel{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">
+        <i class="fas fa-edit"></i> Modifier Adhésion #{{ adhesion.id }}
+    </h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <form method="POST" class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="adhesion_type"><strong>Type d'Adhésion</strong></label>
+                        <select name="adhesion_type" id="adhesion_type" class="form-control" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="student" {% if adhesion.adhesion_type == 'student' %}selected{% endif %}>Étudiant</option>
+                            <option value="professional" {% if adhesion.adhesion_type == 'professional' %}selected{% endif %}>Professionnel</option>
+                            <option value="partner" {% if adhesion.adhesion_type == 'partner' %}selected{% endif %}>Partenaire</option>
+                            <option value="donor" {% if adhesion.adhesion_type == 'donor' %}selected{% endif %}>Donateur</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount"><strong>Montant (XOF)</strong></label>
+                        <input type="number" name="amount" id="amount" class="form-control" 
+                               value="{{ adhesion.amount }}" step="100" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payment_method"><strong>Méthode de Paiement</strong></label>
+                        <select name="payment_method" id="payment_method" class="form-control">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="orange_money" {% if adhesion.payment_method == 'orange_money' %}selected{% endif %}>Orange Money</option>
+                            <option value="wave" {% if adhesion.payment_method == 'wave' %}selected{% endif %}>Wave</option>
+                            <option value="mtn" {% if adhesion.payment_method == 'mtn' %}selected{% endif %}>MTN Money</option>
+                            <option value="bank_transfer" {% if adhesion.payment_method == 'bank_transfer' %}selected{% endif %}>Virement Bancaire</option>
+                            <option value="cash" {% if adhesion.payment_method == 'cash' %}selected{% endif %}>Espèces</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payment_status"><strong>Statut de Paiement</strong></label>
+                        <select name="payment_status" id="payment_status" class="form-control" required>
+                            <option value="pending" {% if adhesion.payment_status == 'pending' %}selected{% endif %}>En Attente</option>
+                            <option value="paid" {% if adhesion.payment_status == 'paid' %}selected{% endif %}>Payée</option>
+                            <option value="cancelled" {% if adhesion.payment_status == 'cancelled' %}selected{% endif %}>Annulée</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes"><strong>Notes</strong></label>
+                        <textarea name="notes" id="notes" class="form-control" rows="4">{{ adhesion.notes or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer les modifications
+                    </button>
+                    <a href="{{ url_for('admin.manage_adhesions') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Informations du Membre</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        <strong>Nom:</strong> {{ adhesion.member.full_name if adhesion.member else 'N/A' }}
+                    </p>
+                    <p>
+                        <strong>Email:</strong> {{ adhesion.member.email if adhesion.member else 'N/A' }}
+                    </p>
+                    <p>
+                        <strong>Téléphone:</strong> {{ adhesion.member.phone if adhesion.member else 'N/A' }}
+                    </p>
+                    <p>
+                        <strong>Ville:</strong> {{ adhesion.member.city if adhesion.member else 'N/A' }}
+                    </p>
+                    <hr>
+                    <p>
+                        <strong>Date de création:</strong><br>
+                        {{ adhesion.created_at.strftime('%d/%m/%Y à %H:%M') }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

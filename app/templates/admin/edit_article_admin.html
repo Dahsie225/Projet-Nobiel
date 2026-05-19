@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier un Article - Nobiel{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">
+        <i class="fas fa-edit"></i> Modifier l'Article
+    </h1>
+
+    <form method="POST" class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="title"><strong>Titre *</strong></label>
+                        <input type="text" name="title" id="title" class="form-control" 
+                               value="{{ article.title }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="excerpt"><strong>Résumé/Aperçu</strong></label>
+                        <textarea name="excerpt" id="excerpt" class="form-control" rows="3">{{ article.excerpt or '' }}</textarea>
+                        <small class="form-text text-muted">Maximum 500 caractères</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="content"><strong>Contenu *</strong></label>
+                        <textarea name="content" id="content" class="form-control" rows="10" required>{{ article.content }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Publication</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="category"><strong>Catégorie</strong></label>
+                        <select name="category" id="category" class="form-control">
+                            <option value="News" {% if article.category == 'News' %}selected{% endif %}>Actualité</option>
+                            <option value="Event" {% if article.category == 'Event' %}selected{% endif %}>Événement</option>
+                            <option value="Tutorial" {% if article.category == 'Tutorial' %}selected{% endif %}>Tutoriel</option>
+                            <option value="Announcement" {% if article.category == 'Announcement' %}selected{% endif %}>Annonce</option>
+                            <option value="Other" {% if article.category == 'Other' %}selected{% endif %}>Autre</option>
+                        </select>
+                    </div>
+
+                    <div class="form-check mt-3">
+                        <input type="checkbox" name="publish" id="publish" class="form-check-input"
+                               {% if article.published_at %}checked{% endif %}>
+                        <label class="form-check-label" for="publish">
+                            <strong>Article publié</strong>
+                        </label>
+                        <small class="d-block text-muted mt-2">
+                            {% if article.published_at %}
+                            Publié le {{ article.published_at.strftime('%d/%m/%Y à %H:%M') }}
+                            {% else %}
+                            Actuellement en brouillon
+                            {% endif %}
+                        </small>
+                    </div>
+
+                    <hr>
+
+                    <div class="text-muted small">
+                        <p>
+                            <strong>Créé par:</strong> {{ article.author.full_name }}<br>
+                            <strong>Date:</strong> {{ article.created_at.strftime('%d/%m/%Y') }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg btn-block mb-2">
+                <i class="fas fa-save"></i> Enregistrer les modifications
+            </button>
+            <a href="{{ url_for('admin.manage_articles') }}" class="btn btn-secondary btn-block">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

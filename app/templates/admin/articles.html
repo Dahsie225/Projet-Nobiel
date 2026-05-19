@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des Actualités - Nobiel{% endblock %}
+
+{% block content %}
+<div class="articles-container">
+    <div class="container mt-5">
+        <h1 class="page-title">Gestion des Actualités</h1>
+
+        <!-- Actions Bar -->
+        <div class="actions-bar">
+            <a href="{{ url_for('admin.create_article_admin') }}" class="btn btn-new">
+                <i class="fas fa-plus"></i> Nouvel Article
+            </a>
+            
+            <div class="filter-buttons">
+                <a href="{{ url_for('admin.manage_articles') }}" 
+                   class="filter-btn {% if not current_status %}active{% endif %}">
+                    Tous
+                </a>
+                <a href="{{ url_for('admin.manage_articles', status='published') }}" 
+                   class="filter-btn {% if current_status == 'published' %}active{% endif %}">
+                    Publiés
+                </a>
+                <a href="{{ url_for('admin.manage_articles', status='draft') }}" 
+                   class="filter-btn {% if current_status == 'draft' %}active{% endif %}">
+                    Brouillons
+                </a>
+            </div>
+
+            <input type="text" class="search-bar" placeholder="Rechercher">
+        </div>
+
+        <!-- Articles List -->
+        <div class="articles-list">
+            {% if articles.items %}
+                <table class="articles-table">
+                    <thead>
+                        <tr>
+                            <th>Titre</th>
+                            <th>Auteur</th>
+                            <th>Catégorie</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for article in articles.items %}
+                        <tr class="article-row">
+                            <td class="article-title">
+                                <strong>{{ article.title }}</strong><br>
+                                <small>{{ article.excerpt[:60] }}</small>
+                            </td>
+                            <td>{{ article.author.full_name }}</td>
+                            <td>
+                                <span class="category-badge">{{ article.category }}</span>
+                            </td>
+                            <td>{{ article.created_at.strftime('%d/%m/%Y') }}</td>
+                            <td>
+                                {% if article.published_at %}
+                                    <span class="status-badge published"><i class="fas fa-check"></i> Publié</span>
+                                {% else %}
+                                    <span class="status-badge draft"><i class="fas fa-pencil"></i> Brouillon</span>
+                                {% endif %}
+                            </td>
+                            <td class="article-actions">
+                                <a href="{{ url_for('admin.edit_article_admin', article_id=article.id) }}" 
+                                   class="action-icon edit-icon" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="POST" 
+                                      action="{{ url_for('admin.delete_article_admin', article_id=article.id) }}"
+                                      style="display:inline;"
+                                      onsubmit="return confirm('Êtes-vous sûr?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="action-icon delete-icon" title="Supprimer">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+            <p class="no-data">Aucun article trouvé.</p>
+            {% endif %}
+        </div>
+
+        <!-- Pagination -->
+        {% if articles.pages > 1 %}
+        <div class="pagination-wrapper">
+            {% if articles.has_prev %}
+                <a href="{{ url_for('admin.manage_articles', page=articles.prev_num, status=current_status) }}" 
+                   class="btn btn-secondary">
+                    ← Précédent
+                </a>
+            {% endif %}
+            
+            <span class="pagination-info">Page {{ articles.page }} / {{ articles.pages }}</span>
+            
+            {% if articles.has_next %}
+                <a href="{{ url_for('admin.manage_articles', page=articles.next_num, status=current_status) }}" 
+                   class="btn btn-secondary">
+                    Suivant →
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary mt-4">
+            ← Retour au Tableau de Bord
+        </a>
+    </div>
+</div>
+
+<style>
+.articles-container {
+    min-height: 100vh;
+    background: #f5f5f5;
+    padding: 40px 0;
+}
+
+.page-title {
+    font-size: 32px;
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+.actions-bar {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+}
+
+.btn-new {
+    background: #27ae60;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.btn-new:hover {
+    background: #229954;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-btn {
+    padding: 10px 16px;
+    background: #ecf0f1;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s;
+    white-space: nowrap;
+}
+
+.filter-btn.active {
+    background: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.filter-btn:hover {
+    background: #95a5a6;
+    border-color: #95a5a6;
+}
+
+.search-bar {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.search-bar:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.articles-list {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.articles-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.articles-table thead {
+    background: #2c3e50;
+    color: white;
+}
+
+.articles-table th {
+    padding: 15px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+}
+
+.article-row {
+    border-bottom: 1px solid #ecf0f1;
+    transition: background 0.3s;
+}
+
+.article-row:hover {
+    background: #f9f9f9;
+}
+
+.articles-table td {
+    padding: 15px 20px;
+    font-size: 13px;
+}
+
+.article-title {
+    font-weight: 600;
+}
+
+.article-title small {
+    display: block;
+    color: #999;
+    margin-top: 5px;
+}
+
+.category-badge {
+    background: #ecf0f1;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.published {
+    background: #d4edda;
+    color: #27ae60;
+}
+
+.status-badge.draft {
+    background: #fff3cd;
+    color: #f39c12;
+}
+
+.article-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+    text-decoration: none;
+    color: white;
+}
+
+.edit-icon {
+    background: #3498db;
+}
+
+.edit-icon:hover {
+    background: #2980b9;
+}
+
+.delete-icon {
+    background: #e74c3c;
+}
+
+.delete-icon:hover {
+    background: #c0392b;
+}
+
+.pagination-wrapper {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.pagination-info {
+    color: #666;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.no-data {
+    padding: 40px 20px;
+    text-align: center;
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    .actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-new, .search-bar {
+        width: 100%;
+    }
+
+    .filter-buttons {
+        width: 100%;
+        order: 3;
+    }
+
+    .articles-table {
+        font-size: 12px;
+    }
+
+    .articles-table th,
+    .articles-table td {
+        padding: 10px;
+    }
+
+    .action-icon {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 12px !important;
+    }
+}
+</style>
+{% endblock %}

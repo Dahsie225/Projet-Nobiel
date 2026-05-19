@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+
+{% block title %}Actualités - Nobiel{% endblock %}
+
+{% block content %}
+<style>
+/* ===== PAGE ACTUALITÉS ===== */
+.news-page {
+    background: #f5f0e8;
+    min-height: 100vh;
+    padding: 60px 20px 80px;
+}
+
+.news-page-header {
+    text-align: center;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.news-page-header h1 {
+    font-size: 40px;
+    font-weight: 900;
+    color: #1a1a2e;
+    font-family: 'Georgia', serif;
+    margin: 0;
+}
+
+.news-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #1a2a4a;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.news-add-btn:hover { background: #6f42c1; color: white; }
+
+/* Grille 2 colonnes */
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+    max-width: 1100px;
+    margin: 0 auto 48px;
+}
+
+/* Carte article */
+.news-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: box-shadow 0.25s, transform 0.25s;
+    text-decoration: none;
+    color: inherit;
+}
+.news-card:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.14);
+    transform: translateY(-4px);
+}
+
+.news-card-body {
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    flex: 1;
+}
+
+.news-card-content {
+    flex: 1;
+    padding: 28px 24px 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.news-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.news-card-date {
+    font-size: 13px;
+    color: #999;
+    font-weight: 500;
+}
+
+.news-card-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: #1a2a4a;
+    color: white;
+    text-transform: capitalize;
+}
+
+.news-card-badge.badge-event    { background: #e67e22; }
+.news-card-badge.badge-announcement { background: #27ae60; }
+.news-card-badge.badge-opinion  { background: #8e44ad; }
+
+.news-card-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1a2e;
+    line-height: 1.3;
+    margin: 0 0 12px;
+    font-family: 'Georgia', serif;
+}
+
+.news-card-excerpt {
+    font-size: 13px;
+    color: #888;
+    line-height: 1.6;
+    margin: 0 0 10px;
+}
+
+.news-card-text {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.7;
+    flex: 1;
+    margin: 0 0 18px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.news-card-link {
+    color: #6f42c1;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: gap 0.2s;
+}
+.news-card-link:hover { gap: 8px; }
+
+/* Image de couverture */
+.news-card-img-wrap {
+    width: 180px;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.news-card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Gradient placeholder si pas d'image */
+.news-card-img-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 180px;
+}
+
+/* Pagination */
+.news-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 48px;
+}
+.news-pagination a,
+.news-pagination strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    background: white;
+    color: #1a1a2e;
+    transition: all 0.2s;
+}
+.news-pagination a:hover { background: #6f42c1; color: white; border-color: #6f42c1; }
+.news-pagination strong { background: #1a2a4a; color: white; border-color: #1a2a4a; }
+
+/* Bouton voir tous */
+.news-view-all-wrap { text-align: center; }
+.news-view-all-btn {
+    display: inline-block;
+    background: #1a2a4a;
+    color: white;
+    padding: 16px 48px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.news-view-all-btn:hover { background: #6f42c1; color: white; }
+
+/* Barre de recherche */
+.news-search-bar {
+    max-width: 700px;
+    margin: 0 auto 36px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.news-search-bar input {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px 18px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+}
+.news-search-bar input:focus { border-color: #6f42c1; }
+.news-search-bar select {
+    padding: 12px 14px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+.news-search-bar select:focus { border-color: #6f42c1; }
+.news-search-bar button {
+    padding: 12px 24px;
+    background: #1a2a4a;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.news-search-bar button:hover { background: #6f42c1; }
+.news-search-clear {
+    display: inline-block;
+    font-size: 13px;
+    color: #888;
+    text-decoration: none;
+    padding: 12px 0;
+}
+.news-search-clear:hover { color: #e74c3c; }
+.news-result-info {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: #888;
+}
+.news-result-info strong { color: #1a2a4a; }
+
+/* Vide */
+.news-empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: #aaa;
+    font-size: 16px;
+}
+
+@media (max-width: 768px) {
+    .news-grid { grid-template-columns: 1fr; }
+    .news-card-img-wrap { width: 120px; }
+    .news-page-header h1 { font-size: 28px; }
+}
+@media (max-width: 480px) {
+    .news-card-body { flex-direction: column; }
+    .news-card-img-wrap { width: 100%; height: 180px; }
+}
+</style>
+
+<div class="news-page">
+
+    <div class="news-page-header">
+        <h1>Actualités Récentes</h1>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('articles.create_article') }}" class="news-add-btn">+ Nouvel Article</a>
+        {% endif %}
+    </div>
+
+    <!-- Barre de recherche -->
+    <form method="GET" action="{{ url_for('articles.list_articles') }}" class="news-search-bar">
+        <input type="text" name="q" placeholder="🔍 Rechercher un article…"
+               value="{{ search }}" autocomplete="off">
+        <select name="category">
+            <option value="">Toutes catégories</option>
+            <option value="news"         {% if category == 'news' %}selected{% endif %}>Actualité</option>
+            <option value="event"        {% if category == 'event' %}selected{% endif %}>Événement</option>
+            <option value="announcement" {% if category == 'announcement' %}selected{% endif %}>Annonce</option>
+        </select>
+        <button type="submit">Rechercher</button>
+        {% if search or category %}
+            <a href="{{ url_for('articles.list_articles') }}" class="news-search-clear">✕ Effacer</a>
+        {% endif %}
+    </form>
+
+    {% if search or category %}
+        <p class="news-result-info">
+            {% if articles.total == 0 %}
+                Aucun résultat
+            {% else %}
+                <strong>{{ articles.total }}</strong> résultat{{ 's' if articles.total > 1 }}
+            {% endif %}
+            {% if search %} pour « <strong>{{ search }}</strong> »{% endif %}
+            {% if category %} dans <strong>{{ {'news':'Actualité','event':'Événement','announcement':'Annonce'}.get(category, category) }}</strong>{% endif %}
+        </p>
+    {% endif %}
+
+    {% if articles.items %}
+
+        <div class="news-grid">
+            {% for article in articles.items %}
+            {% set cat_map = {'news': 'News', 'event': 'Événement', 'announcement': 'Annonce', 'opinion': 'Opinion'} %}
+            {% set cat_label = cat_map.get(article.category, article.category or 'News') %}
+            <a href="{{ url_for('articles.view_article', slug=article.slug) }}" class="news-card">
+                <div class="news-card-body">
+                    <div class="news-card-content">
+                        <div class="news-card-meta">
+                            <span class="news-card-date">{{ (article.published_at or article.created_at).strftime('%d/%m/%Y') }}</span>
+                            <span class="news-card-badge badge-{{ article.category or 'news' }}">{{ cat_label }}</span>
+                        </div>
+                        <h2 class="news-card-title">{{ article.title }}</h2>
+                        {% if article.excerpt %}
+                            <p class="news-card-excerpt">{{ article.excerpt }}...</p>
+                        {% endif %}
+                        <p class="news-card-text">{{ article.content | striptags | truncate(220, True, '…') }}</p>
+                        <span class="news-card-link">Lire la suite →</span>
+                    </div>
+                    <div class="news-card-img-wrap">
+                        {% if article.cover_image %}
+                            <img src="{{ url_for('static', filename=article.cover_image) }}" alt="{{ article.title }}">
+                        {% else %}
+                            {% set gradients = [
+                                'linear-gradient(135deg,#667eea,#764ba2)',
+                                'linear-gradient(135deg,#f093fb,#f5576c)',
+                                'linear-gradient(135deg,#4facfe,#00f2fe)',
+                                'linear-gradient(135deg,#43e97b,#38f9d7)',
+                                'linear-gradient(135deg,#fa709a,#fee140)',
+                                'linear-gradient(135deg,#a18cd1,#fbc2eb)'
+                            ] %}
+                            <div class="news-card-img-placeholder" style="background: {{ gradients[loop.index0 % gradients|length] }};"></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if articles.pages > 1 %}
+        <div class="news-pagination">
+            {% if articles.has_prev %}
+                <a href="{{ url_for('articles.list_articles', page=articles.prev_num, q=search, category=category) }}">←</a>
+            {% endif %}
+            {% for page_num in articles.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == articles.page %}
+                        <strong>{{ page_num }}</strong>
+                    {% else %}
+                        <a href="{{ url_for('articles.list_articles', page=page_num, q=search, category=category) }}">{{ page_num }}</a>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            {% if articles.has_next %}
+                <a href="{{ url_for('articles.list_articles', page=articles.next_num, q=search, category=category) }}">→</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    {% else %}
+        <div class="news-empty">
+            <p>Aucun article pour le moment.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+

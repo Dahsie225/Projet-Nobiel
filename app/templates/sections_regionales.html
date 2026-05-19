@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block title %}Sections Régionales – Nobiel{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== PAGE SECTIONS RÉGIONALES ===== */
+.sr-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #c0007a 0%, #8a00c8 30%, #3a00b8 60%, #0b0044 100%);
+    padding: 60px 0 80px;
+    position: relative;
+    overflow: hidden;
+    margin-left: -40px;
+    margin-right: -40px;
+}
+
+/* Cercles concentriques (fond) */
+.sr-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle, transparent 60px, rgba(255,255,255,0.04) 61px, transparent 62px),
+        radial-gradient(circle, transparent 150px, rgba(255,255,255,0.03) 151px, transparent 152px),
+        radial-gradient(circle, transparent 280px, rgba(255,255,255,0.02) 281px, transparent 282px),
+        radial-gradient(circle, transparent 420px, rgba(255,255,255,0.015) 421px, transparent 422px);
+    background-position: 10% 30%, 10% 30%, 10% 30%, 10% 30%,
+                         88% 70%, 88% 70%, 88% 70%;
+    pointer-events: none;
+}
+
+/* Rayons lumineux */
+.sr-page::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(55deg, transparent 40%, rgba(255,120,255,0.05) 50%, transparent 60%),
+        linear-gradient(125deg, transparent 35%, rgba(120,80,255,0.06) 50%, transparent 65%);
+    pointer-events: none;
+}
+
+/* Cercles décoratifs */
+.sr-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.07);
+    pointer-events: none;
+}
+.sr-ring-1 { width:200px; height:200px; top:5%;   left:2%;   }
+.sr-ring-2 { width:320px; height:320px; top:-2%;  left:-6%;  border-color: rgba(255,255,255,0.04); }
+.sr-ring-3 { width:180px; height:180px; bottom:8%;right:4%;  }
+.sr-ring-4 { width:300px; height:300px; bottom:2%;right:-4%; border-color: rgba(255,255,255,0.04); }
+
+.sr-page .container { position: relative; z-index: 2; }
+
+/* ── En-tête de page ── */
+.sr-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+.sr-header h1 {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 0 0 30px rgba(255,180,255,0.7);
+    margin-bottom: 10px;
+}
+.sr-header p {
+    font-size: 0.9rem;
+    color: rgba(220,200,255,0.8);
+    letter-spacing: 0.5px;
+    max-width: 420px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+.sr-back-link {
+    display: inline-block;
+    margin-bottom: 28px;
+    color: rgba(255,200,80,0.85);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: color 0.2s;
+}
+.sr-back-link:hover { color: #fff; text-decoration: none; }
+
+/* ── Carte nationale ── */
+.sr-national-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 28px;
+}
+.sr-national-row .sr-card {
+    width: 300px;
+}
+
+/* ── Grille des sections ── */
+.sr-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    max-width: 940px;
+    margin: 0 auto;
+}
+
+/* ── Carte ── */
+.sr-card {
+    position: relative;
+    display: block;
+    text-decoration: none;
+    background: rgba(20, 0, 60, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1.5px solid rgba(180, 100, 255, 0.35);
+    border-radius: 16px;
+    padding: 28px 20px 24px;
+    text-align: center;
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+.sr-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(200,100,255,0.12) 0%, transparent 65%);
+    pointer-events: none;
+}
+
+.sr-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255,150,255,0.65);
+    box-shadow: 0 0 30px rgba(200,0,255,0.25), 0 12px 40px rgba(0,0,0,0.4);
+    text-decoration: none;
+}
+
+.sr-card-national {
+    border-color: rgba(255, 190, 50, 0.55);
+    background: rgba(30, 0, 80, 0.7);
+}
+.sr-card-national:hover {
+    border-color: rgba(255, 210, 80, 0.9);
+    box-shadow: 0 0 40px rgba(255,180,0,0.3), 0 12px 40px rgba(0,0,0,0.4);
+}
+
+/* ── Badge ── */
+.sr-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #e040fb, #7c4dff);
+    color: white;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    box-shadow: 0 0 12px rgba(200,0,255,0.4);
+}
+.sr-card-national .sr-badge {
+    background: linear-gradient(135deg, #ffd740, #ff6d00);
+    box-shadow: 0 0 12px rgba(255,160,0,0.5);
+}
+
+/* ── Textes carte ── */
+.sr-card h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 6px;
+    text-shadow: 0 0 12px rgba(200,150,255,0.5);
+}
+.sr-card-national h3 {
+    font-size: 1.5rem;
+    text-shadow: 0 0 14px rgba(255,200,80,0.6);
+}
+.sr-card p {
+    font-size: 0.78rem;
+    color: rgba(210,190,255,0.75);
+    margin: 0 0 12px;
+    line-height: 1.5;
+}
+.sr-members {
+    display: inline-block;
+    font-size: 0.78rem;
+    color: rgba(230,180,255,0.9);
+    font-weight: 600;
+    background: rgba(150,50,255,0.2);
+    border: 1px solid rgba(180,100,255,0.3);
+    border-radius: 20px;
+    padding: 4px 14px;
+}
+.sr-card-national .sr-members {
+    color: rgba(255,230,150,0.95);
+    background: rgba(255,160,0,0.15);
+    border-color: rgba(255,190,50,0.35);
+}
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+    .sr-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .sr-header h1 { font-size: 1.7rem; }
+}
+@media (max-width: 540px) {
+    .sr-grid { grid-template-columns: 1fr; max-width: 320px; }
+    .sr-national-row .sr-card { width: 100%; max-width: 300px; }
+    .sr-page { margin-left: 0; margin-right: 0; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sr-page">
+    <!-- Cercles décoratifs -->
+    <div class="sr-ring sr-ring-1"></div>
+    <div class="sr-ring sr-ring-2"></div>
+    <div class="sr-ring sr-ring-3"></div>
+    <div class="sr-ring sr-ring-4"></div>
+
+    <div class="container">
+
+        <!-- Lien retour -->
+        <div style="text-align:center;">
+            <a href="{{ url_for('main.index') }}" class="sr-back-link">← Retour à l'accueil</a>
+        </div>
+
+        <!-- En-tête -->
+        <div class="sr-header">
+            <h1>Sections Régionales</h1>
+            <p>Un réseau unifié de 6 villes clés, connectant plus de 6 000 membres à travers la Côte d'Ivoire.</p>
+        </div>
+
+        <!-- Abidjan (siège national) -->
+        <div class="sr-national-row">
+            <a href="{{ url_for('members.section_detail', city='Abidjan') }}" class="sr-card sr-card-national">
+                <span class="sr-badge">🏛 SIÈGE NATIONAL</span>
+                <h3>Abidjan</h3>
+                <p>Siège national &amp; Cœur stratégique. KM 0.</p>
+                <span class="sr-members">👤 Adhérents : {{ sections_stats.get('Abidjan', 0) }}</span>
+            </a>
+        </div>
+
+        <!-- 5 sections régionales -->
+        <div class="sr-grid">
+            <a href="{{ url_for('members.section_detail', city='Sassandra') }}" class="sr-card">
+                <span class="sr-badge">SECTION</span>
+                <h3>Sassandra</h3>
+                <p>Pôle côtier stratégique.</p>
+                <span class="sr-members">👤 Adhérents : {{ sections_stats.get('Sassandra', 0) }}</span>
+            </a>
+            <a href="{{ url_for('members.section_detail', city='San-Pédro') }}" class="sr-card">
+                <span class="sr-badge">SECTION</span>
+                <h3>San-Pédro</h3>
+                <p>Nœud portuaire dynamique.</p>
+                <span class="sr-members">👤 Adhérents : {{ sections_stats.get('San-Pédro', 0) }}</span>
+            </a>
+            <a href="{{ url_for('members.section_detail', city='Korogho') }}" class="sr-card">
+                <span class="sr-badge">SECTION</span>
+                <h3>Korogho</h3>
+                <p>Centre culturel &amp; agricole.</p>
+                <span class="sr-members">👤 Adhérents : {{ sections_stats.get('Korogho', 0) }}</span>
+            </a>
+            <a href="{{ url_for('members.section_detail', city='Bouaké') }}" class="sr-card">
+                <span class="sr-badge">SECTION</span>
+                <h3>Bouaké</h3>
+                <p>Carrefour économique central.</p>
+                <span class="sr-members">👤 Adhérents : {{ sections_stats.get('Bouaké', 0) }}</span>
+            </a>
+            <a href="{{ url_for('members.section_detail', city='Man') }}" class="sr-card">
+                <span class="sr-badge">SECTION</span>
+                <h3>Man</h3>
+                <p>Ville des montagnes panoramique.</p>
+                <span class="sr-members">👤 Adhérents : {{ sections_stats.get('Man', 0) }}</span>
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

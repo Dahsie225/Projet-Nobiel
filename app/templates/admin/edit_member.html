@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier Membre - Nobiel{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">
+        <i class="fas fa-edit"></i> Modifier le Membre: {{ member.full_name }}
+    </h1>
+
+    <form method="POST" class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Informations Personnelles</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="first_name"><strong>Prénom *</strong></label>
+                                <input type="text" name="first_name" id="first_name" class="form-control" 
+                                       value="{{ member.first_name }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="last_name"><strong>Nom *</strong></label>
+                                <input type="text" name="last_name" id="last_name" class="form-control" 
+                                       value="{{ member.last_name }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="email"><strong>Email *</strong></label>
+                                <input type="email" name="email" id="email" class="form-control" 
+                                       value="{{ member.email }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="phone"><strong>Téléphone</strong></label>
+                                <input type="tel" name="phone" id="phone" class="form-control" 
+                                       value="{{ member.phone or '' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="gender"><strong>Genre</strong></label>
+                                <select name="gender" id="gender" class="form-control">
+                                    <option value="">-- Sélectionner --</option>
+                                    <option value="M" {% if member.gender == 'M' %}selected{% endif %}>Masculin</option>
+                                    <option value="F" {% if member.gender == 'F' %}selected{% endif %}>Féminin</option>
+                                    <option value="Other" {% if member.gender == 'Other' %}selected{% endif %}>Autre</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="birthdate"><strong>Date de naissance</strong></label>
+                                <input type="date" name="birthdate" id="birthdate" class="form-control"
+                                       {% if member.birthdate %}value="{{ member.birthdate }}"{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Adresse</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="address"><strong>Rue</strong></label>
+                        <input type="text" name="address" id="address" class="form-control" 
+                               value="{{ member.address or '' }}">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="city"><strong>Ville</strong></label>
+                                <input type="text" name="city" id="city" class="form-control" 
+                                       value="{{ member.city or '' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="postal_code"><strong>Code Postal</strong></label>
+                                <input type="text" name="postal_code" id="postal_code" class="form-control" 
+                                       value="{{ member.postal_code or '' }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">Notes</h5>
+                </div>
+                <div class="card-body">
+                    <textarea name="notes" class="form-control" rows="4">{{ member.notes or '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Adhésion</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="membership_type"><strong>Type d'Adhésion</strong></label>
+                        <select name="membership_type" id="membership_type" class="form-control">
+                            <option value="">-- Sélectionner --</option>
+                            <option value="student" {% if member.membership_type == 'student' %}selected{% endif %}>Étudiant</option>
+                            <option value="professional" {% if member.membership_type == 'professional' %}selected{% endif %}>Professionnel</option>
+                            <option value="partner" {% if member.membership_type == 'partner' %}selected{% endif %}>Partenaire</option>
+                            <option value="donor" {% if member.membership_type == 'donor' %}selected{% endif %}>Donateur</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="membership_status"><strong>Statut</strong></label>
+                        <select name="membership_status" id="membership_status" class="form-control">
+                            <option value="pending" {% if member.membership_status == 'pending' %}selected{% endif %}>En attente</option>
+                            <option value="active" {% if member.membership_status == 'active' %}selected{% endif %}>Actif</option>
+                            <option value="inactive" {% if member.membership_status == 'inactive' %}selected{% endif %}>Inactif</option>
+                            <option value="resigned" {% if member.membership_status == 'resigned' %}selected{% endif %}>Résilié</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label for="section_role"><strong>Rôle dans la Section</strong></label>
+                        <select name="section_role" id="section_role" class="form-control">
+                            <option value="member" {% if member.section_role == 'member' or not member.section_role %}selected{% endif %}>Membre</option>
+                            <option value="president" {% if member.section_role == 'president' %}selected{% endif %}>&#128081; Président</option>
+                            <option value="vice_president" {% if member.section_role == 'vice_president' %}selected{% endif %}>&#11088; Vice-Président</option>
+                            <option value="secretary" {% if member.section_role == 'secretary' %}selected{% endif %}>&#128203; Secrétaire</option>
+                            <option value="treasurer" {% if member.section_role == 'treasurer' %}selected{% endif %}>&#128188; Trésorier</option>
+                        </select>
+                        <small class="text-muted">Le président et les responsables s'affichent sur la page de leur section.</small>
+                    </div>
+
+                    <p class="text-muted small">
+                        <strong>Adhérent depuis:</strong><br>
+                        {{ member.joined_at.strftime('%d/%m/%Y') }}
+                    </p>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg btn-block mb-2">
+                <i class="fas fa-save"></i> Enregistrer
+            </button>
+            <a href="{{ url_for('admin.view_member_admin', member_id=member.id) }}" class="btn btn-secondary btn-block">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

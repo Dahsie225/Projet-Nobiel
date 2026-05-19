@@ -1,0 +1,424 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Découvrir nos Actions - Nobiel{% endblock %}
+
+{% block content %}
+
+<style>
+/* ===== PAGE HEADER ===== */
+.da-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 40px;
+    background: white;
+    border-bottom: 1px solid #f0eef8;
+}
+.da-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+}
+.da-brand-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2c1a6e, #6f42c1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: 900;
+    font-family: 'Georgia', serif;
+    flex-shrink: 0;
+}
+.da-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+.da-brand-top {
+    font-size: 10px;
+    font-weight: 700;
+    color: #7a6a9a;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+.da-brand-name {
+    font-size: 18px;
+    font-weight: 900;
+    color: #2c1a6e;
+    letter-spacing: 0.5px;
+}
+.da-header-title {
+    text-align: right;
+}
+.da-header-title .da-subtitle {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 4px;
+    display: block;
+}
+.da-header-title h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0;
+    line-height: 1.1;
+}
+
+/* ===== HERO DARK ===== */
+.da-hero {
+    position: relative;
+    background: linear-gradient(160deg, #1a1030 0%, #2d1a50 40%, #1e2a40 100%);
+    padding: 60px 40px 120px;
+    overflow: hidden;
+}
+.da-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 70% 50%, rgba(111,66,193,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse at 10% 80%, rgba(60,30,120,0.2) 0%, transparent 50%);
+}
+/* Simulation photo de mains qui travaillent — overlay sombre */
+.da-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3Cpattern id='p' width='60' height='60' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='30' cy='30' r='1' fill='rgba(255,255,255,0.03)'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23p)'/%3E%3C/svg%3E");
+    pointer-events: none;
+}
+.da-hero .container {
+    position: relative;
+    z-index: 1;
+    max-width: 700px;
+}
+.da-hero-text {
+    font-size: 16px;
+    color: rgba(255,255,255,0.80);
+    line-height: 1.8;
+    text-align: center;
+    margin: 0 auto;
+}
+.da-hero-text strong {
+    color: white;
+    font-weight: 700;
+}
+
+/* ===== ACTION CARDS — flottent sur le hero ===== */
+.da-cards-section {
+    position: relative;
+    z-index: 10;
+    margin-top: -80px;
+    padding: 0 20px 60px;
+}
+.da-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+.da-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px 22px 24px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.14);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid rgba(0,0,0,0.04);
+}
+.da-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px rgba(111,66,193,0.18);
+}
+.da-card-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 4px;
+    line-height: 1;
+}
+.da-card h3 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0;
+    line-height: 1.3;
+}
+.da-card p {
+    font-size: 13px;
+    color: #777;
+    line-height: 1.65;
+    margin: 0;
+    flex: 1;
+}
+.da-card-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1.5px solid #ddd;
+    border-radius: 50%;
+    color: #666;
+    font-size: 14px;
+    text-decoration: none;
+    margin-top: 8px;
+    transition: all 0.2s;
+    align-self: flex-start;
+}
+.da-card-arrow:hover {
+    background: #6f42c1;
+    border-color: #6f42c1;
+    color: white;
+}
+
+/* ===== NEWS SECTION ===== */
+.da-news {
+    padding: 0 20px 50px;
+}
+.da-news-box {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: white;
+    border: 1.5px solid #e8e0f8;
+    border-radius: 16px;
+    padding: 40px 36px;
+    box-shadow: 0 2px 16px rgba(111,66,193,0.06);
+}
+.da-news-box h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 20px;
+}
+.da-no-news {
+    text-align: center;
+    padding: 20px 0 10px;
+    color: #aaa;
+    font-size: 15px;
+}
+.da-view-all {
+    display: block;
+    text-align: center;
+    margin-top: 14px;
+    color: #6f42c1;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+}
+.da-view-all:hover { text-decoration: underline; }
+
+/* Article items */
+.da-article-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px 0;
+    border-bottom: 1px solid #f0eef8;
+}
+.da-article-item:last-child { border-bottom: none; }
+.da-article-meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-size: 12px;
+}
+.da-article-cat {
+    background: #6f42c1;
+    color: white;
+    padding: 3px 12px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 11px;
+}
+.da-article-date { color: #bbb; }
+.da-article-item h3 { font-size: 18px; font-weight: 700; color: #1a1a2e; margin: 0; }
+.da-article-item h3 a { color: inherit; text-decoration: none; }
+.da-article-item h3 a:hover { color: #6f42c1; }
+.da-article-excerpt { font-size: 14px; color: #777; line-height: 1.6; margin: 0; }
+.da-read-more { color: #6f42c1; font-weight: 600; font-size: 13px; text-decoration: none; }
+.da-read-more:hover { text-decoration: underline; }
+
+/* ===== SECTIONS DÉTAIL ===== */
+.da-detail-sections {
+    max-width: 1100px;
+    margin: 60px auto 20px;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.da-detail {
+    background: #fff;
+    border: 1.5px solid #e8e0f8;
+    border-radius: 20px;
+    padding: 48px 40px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 16px rgba(111,66,193,0.06);
+    scroll-margin-top: 80px;
+}
+.da-detail--alt {
+    background: #f9f6ff;
+}
+.da-detail-inner {
+    display: flex;
+    gap: 36px;
+    align-items: flex-start;
+}
+.da-detail-icon {
+    font-size: 56px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+.da-detail-body h2 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin: 0 0 14px;
+}
+.da-detail-body p {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.7;
+    margin: 0 0 16px;
+}
+.da-detail-body ul {
+    padding-left: 20px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.da-detail-body ul li {
+    font-size: 14px;
+    color: #6a5acd;
+    line-height: 1.5;
+}
+@media (max-width: 640px) {
+    .da-detail-inner { flex-direction: column; gap: 16px; }
+    .da-detail { padding: 28px 20px; }
+}
+
+/* ===== CTA ===== */
+.da-cta {
+    background: linear-gradient(135deg, #ede8ff 0%, #f5f0ff 100%);
+    padding: 70px 20px;
+    text-align: center;
+    margin-top: 10px;
+}
+.da-cta h2 {
+    font-size: 34px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+}
+.da-cta p {
+    font-size: 15px;
+    color: #7a6a9a;
+    margin-bottom: 28px;
+}
+.da-btn-don {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #6f42c1, #7c3aed);
+    color: white;
+    padding: 14px 34px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(111,66,193,0.30);
+    transition: all 0.3s;
+}
+.da-btn-don:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(111,66,193,0.40);
+    color: white;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+    .da-cards-grid { grid-template-columns: repeat(2, 1fr); }
+    .da-header { padding: 20px 24px; }
+    .da-header-title h1 { font-size: 24px; }
+}
+@media (max-width: 580px) {
+    .da-header { flex-direction: column; gap: 14px; text-align: center; }
+    .da-header-title { text-align: center; }
+    .da-cards-grid { grid-template-columns: 1fr; }
+    .da-hero { padding: 40px 20px 100px; }
+    .da-cta h2 { font-size: 26px; }
+}
+</style>
+
+<!-- En-tête deux colonnes -->
+<div class="da-header">
+    <a href="{{ url_for('main.index') }}" class="da-header-brand">
+        <div class="da-brand-logo">N</div>
+        <div class="da-brand-text">
+            <span class="da-brand-top">Association</span>
+            <span class="da-brand-name">NOBIEL</span>
+        </div>
+    </a>
+    <div class="da-header-title">
+        <span class="da-subtitle">Explorez les initiatives et activités du NOBIEL</span>
+        <h1>Découvrir nos Actions</h1>
+    </div>
+</div>
+
+<!-- Hero sombre -->
+<div class="da-hero">
+    <div class="container">
+        <p class="da-hero-text">
+            L'association NOBIEL œuvre pour un développement humain intégral par le <strong>service</strong>,
+            le <strong>partage</strong> et la <strong>solidarité</strong>. Découvrez nos différentes actions et initiatives.
+        </p>
+    </div>
+</div>
+
+<!-- Cartes flottantes sur le hero -->
+<section class="da-cards-section">
+    <div class="da-cards-grid">
+        <div class="da-card">
+            <span class="da-card-icon">📚</span>
+            <h3>Éducation &amp; Formation</h3>
+            <p>Programme d'éducation inclusive et de formation professionnelle pour les jeunes et les femmes</p>
+            <a href="{{ url_for('main.action_education') }}" class="da-card-arrow">›</a>
+        </div>
+        <div class="da-card">
+            <span class="da-card-icon">🤝</span>
+            <h3>Solidarité Communautaire</h3>
+            <p>Initiatives visant à renforcer les liens sociaux et l'entraide au sein des communautés</p>
+            <a href="{{ url_for('main.action_solidarite') }}" class="da-card-arrow">›</a>
+        </div>
+        <div class="da-card">
+            <span class="da-card-icon">🌱</span>
+            <h3>Développement Durable</h3>
+            <p>Projets de développement économique et d'amélioration des conditions de vie</p>
+            <a href="{{ url_for('main.action_developpement') }}" class="da-card-arrow">›</a>
+        </div>
+        <div class="da-card">
+            <span class="da-card-icon">❤️</span>
+            <h3>Assistance Sociale</h3>
+            <p>Aide aux personnes vulnérables, soutien et accompagnement social</p>
+            <a href="{{ url_for('main.action_assistance') }}" class="da-card-arrow">›</a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="da-cta">
+    <h2>Envie de nous soutenir ?</h2>
+    <p>Vos contributions nous aident à poursuivre nos actions et à transformer les vies</p>
+    <a href="{{ url_for('main.donate') }}" class="da-btn-don">❤️ Faire un don</a>
+</section>
+
+{% endblock %}

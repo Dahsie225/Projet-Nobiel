@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block title %}Rapports de Paiements - Nobiel{% endblock %}
+
+{% block content %}
+<div class="rp-page">
+
+    <!-- Titre -->
+    <h1 class="rp-title">Rapports de Paiements</h1>
+
+    <!-- Filtres période -->
+    <div class="rp-periods">
+        <a href="{{ url_for('admin.payment_report', period='month') }}"
+           class="period-btn {% if report.period == 'month' %}period-btn--active{% endif %}">Ce Mois</a>
+        <a href="{{ url_for('admin.payment_report', period='year') }}"
+           class="period-btn {% if report.period == 'year' %}period-btn--active{% endif %}">Cette Année</a>
+        <a href="{{ url_for('admin.payment_report', period='last30') }}"
+           class="period-btn {% if report.period == 'last30' %}period-btn--active{% endif %}">30 Derniers Jours</a>
+    </div>
+
+    <!-- Cartes stats -->
+    <div class="rp-stats">
+        <div class="rp-stat-card">
+            <div>
+                <div class="rp-stat-label">Total Paiements</div>
+                <div class="rp-stat-number">{{ report.total_payments }}</div>
+            </div>
+            <div class="rp-stat-icons">
+                <i class="fas fa-coins rp-icon rp-icon--gold"></i>
+                <i class="fas fa-kiwi-bird rp-icon rp-icon--ghost"></i>
+            </div>
+        </div>
+        <div class="rp-stat-card rp-stat-card--wide">
+            <div>
+                <div class="rp-stat-label">Total Revenus</div>
+                <div class="rp-stat-number">{{ "%.0f"|format(report.total_amount) }} <span class="rp-xof">XOF</span></div>
+            </div>
+            <div class="rp-stat-icons">
+                <i class="fas fa-chart-line rp-icon rp-icon--blue"></i>
+                <i class="fas fa-money-bill-wave rp-icon rp-icon--green"></i>
+            </div>
+        </div>
+        <div class="rp-stat-card rp-stat-card--wide">
+            <div>
+                <div class="rp-stat-label">Montant Moyen</div>
+                <div class="rp-stat-number">
+                    {% if report.total_payments > 0 %}
+                        {{ "%.0f"|format(report.total_amount / report.total_payments) }}
+                    {% else %}0{% endif %}
+                    <span class="rp-xof">XOF</span>
+                </div>
+            </div>
+            <div class="rp-stat-icons">
+                <i class="fas fa-balance-scale rp-icon rp-icon--blue"></i>
+                <i class="fas fa-chart-pie rp-icon rp-icon--navy"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Par Méthode de Paiement -->
+    <div class="rp-section-label">Par Méthode de Paiement</div>
+    <div class="rp-table-wrap">
+        <table class="rp-table">
+            <thead>
+                <tr>
+                    <th>Méthode <i class="fas fa-desktop rp-th-icon"></i></th>
+                    <th>Nombre <i class="fas fa-users rp-th-icon"></i></th>
+                    <th>Montant <i class="fas fa-coins rp-th-icon"></i></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if report.by_method %}
+                    {% for method, data in report.by_method.items() %}
+                    <tr>
+                        <td>{{ method }}</td>
+                        <td>{{ data.count }}</td>
+                        <td><strong>{{ "%.0f"|format(data.amount) }} XOF</strong></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr><td colspan="3" class="rp-empty">Aucune donnée.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Par Type d'Adhésion -->
+    <div class="rp-section-label">Par Type d'Adhésion</div>
+    <div class="rp-table-wrap">
+        <table class="rp-table rp-table--brown">
+            <thead>
+                <tr>
+                    <th>Type <i class="fas fa-user-tag rp-th-icon"></i></th>
+                    <th>Nombre <i class="fas fa-users rp-th-icon"></i></th>
+                    <th>Montant <i class="fas fa-coins rp-th-icon"></i></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if report.by_type %}
+                    {% for ptype, data in report.by_type.items() %}
+                    <tr>
+                        <td>{{ ptype }}</td>
+                        <td>{{ data.count }}</td>
+                        <td><strong>{{ "%.0f"|format(data.amount) }} XOF</strong></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr><td colspan="3" class="rp-empty">Aucune donnée.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Détail des Paiements -->
+    <div class="rp-section-label">Détail des Paiements</div>
+    <div class="rp-table-wrap">
+        <table class="rp-table">
+            <thead>
+                <tr>
+                    <th>Membre <i class="fas fa-user-plus rp-th-icon"></i></th>
+                    <th>Adhésion <i class="fas fa-user-check rp-th-icon"></i></th>
+                    <th>Montant <i class="fas fa-info-circle rp-th-icon"></i></th>
+                    <th>Méthode <i class="fas fa-desktop rp-th-icon"></i></th>
+                    <th>Date <i class="fas fa-calendar rp-th-icon"></i></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if payments %}
+                    {% for payment in payments %}
+                    <tr>
+                        <td><strong>{{ payment.member.full_name if payment.member else 'N/A' }}</strong></td>
+                        <td>{{ payment.adhesion_type }}</td>
+                        <td><strong>{{ "%.0f"|format(payment.amount) }} XOF</strong></td>
+                        <td>{{ payment.payment_method or '-' }}</td>
+                        <td>
+                            <span class="date-badge">
+                                <i class="fas fa-calendar-alt"></i>
+                                {{ payment.paid_at.strftime('%d/%m/%Y') if payment.paid_at else '-' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr><td colspan="5" class="rp-empty">Aucun paiement pour cette période.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{{ url_for('admin.manage_payments') }}" class="rp-back-btn">
+        <i class="fas fa-arrow-left"></i> Retour
+    </a>
+</div>
+
+<style>
+.rp-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 36px 24px 60px;
+    background: #f8fafc;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    position: relative;
+}
+
+/* Decoration top-right dots */
+.rp-page::before {
+    content: '· · · ·\A· · · ·\A· · · ·\A· · · ·';
+    white-space: pre;
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    color: #cbd5e1;
+    font-size: 18px;
+    letter-spacing: 8px;
+    line-height: 1.8;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Title */
+.rp-title {
+    font-size: 30px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 20px;
+}
+
+/* Period buttons */
+.rp-periods {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.period-btn {
+    padding: 9px 22px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #475569 0%, #334155 100%);
+    color: #e2e8f0;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(51,65,85,0.18);
+}
+
+.period-btn:hover {
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(51,65,85,0.28);
+}
+
+.period-btn--active {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.32);
+}
+
+.period-btn--active:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+    color: #fff;
+}
+
+/* Stat cards */
+.rp-stats {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+}
+
+.rp-stat-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 22px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    border: 1px solid #e2e8f0;
+    min-width: 200px;
+    flex: 1;
+}
+
+.rp-stat-card--wide { flex: 2; }
+
+.rp-stat-label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.rp-stat-number {
+    font-size: 30px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+}
+
+.rp-xof {
+    font-size: 18px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.rp-stat-icons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.rp-icon {
+    font-size: 28px;
+}
+
+.rp-icon--gold  { color: #f59e0b; }
+.rp-icon--ghost { color: #cbd5e1; font-size: 22px; }
+.rp-icon--blue  { color: #3b82f6; }
+.rp-icon--green { color: #22c55e; }
+.rp-icon--navy  { color: #6366f1; }
+
+/* Section label */
+.rp-section-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 28px 0 8px;
+}
+
+/* Tables */
+.rp-table-wrap {
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 4px;
+}
+
+.rp-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rp-table thead tr {
+    background: #334155;
+}
+
+.rp-table--brown thead tr {
+    background: linear-gradient(90deg, #44403c 0%, #57534e 100%);
+}
+
+.rp-table thead th {
+    padding: 14px 20px;
+    color: #f1f5f9;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.rp-th-icon {
+    opacity: 0.55;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+.rp-table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+}
+
+.rp-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.rp-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.rp-table td {
+    padding: 15px 20px;
+    font-size: 14px;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.rp-table td strong {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+/* Date badge */
+.date-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.date-badge i {
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+/* Empty state */
+.rp-empty {
+    text-align: center;
+    color: #94a3b8;
+    padding: 30px !important;
+    font-size: 14px;
+}
+
+/* Back button */
+.rp-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 28px;
+    padding: 10px 22px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+}
+
+.rp-back-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    .rp-stats { flex-direction: column; }
+    .rp-stat-card--wide { flex: 1; }
+    .rp-table-wrap { overflow-x: auto; }
+    .rp-table { min-width: 500px; }
+}
+</style>
+{% endblock %}

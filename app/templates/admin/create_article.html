@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Créer un Nouvel Article - Nobiel{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">
+        <i class="fas fa-plus"></i> Créer un Nouvel Article
+    </h1>
+
+    <form method="POST" class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="title"><strong>Titre *</strong></label>
+                        <input type="text" name="title" id="title" class="form-control" 
+                               placeholder="Entrez le titre de l'article" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="excerpt"><strong>Résumé/Aperçu</strong></label>
+                        <textarea name="excerpt" id="excerpt" class="form-control" rows="3" 
+                                  placeholder="Entrez un résumé court de l'article"></textarea>
+                        <small class="form-text text-muted">Maximum 500 caractères</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="content"><strong>Contenu *</strong></label>
+                        <textarea name="content" id="content" class="form-control" rows="10" 
+                                  placeholder="Entrez le contenu complet de l'article" required></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Publication</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="category"><strong>Catégorie</strong></label>
+                        <select name="category" id="category" class="form-control">
+                            <option value="News">Actualité</option>
+                            <option value="Event">Événement</option>
+                            <option value="Tutorial">Tutoriel</option>
+                            <option value="Announcement">Annonce</option>
+                            <option value="Other">Autre</option>
+                        </select>
+                    </div>
+
+                    <div class="form-check mt-3">
+                        <input type="checkbox" name="publish" id="publish" class="form-check-input" checked>
+                        <label class="form-check-label" for="publish">
+                            <strong>Publier maintenant</strong>
+                        </label>
+                        <small class="d-block text-muted mt-2">
+                            Si vous décochez cette case, l'article sera sauvegardé en brouillon
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-lg btn-block mb-2">
+                <i class="fas fa-save"></i> Créer l'Article
+            </button>
+            <a href="{{ url_for('admin.manage_articles') }}" class="btn btn-secondary btn-block">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

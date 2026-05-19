@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Détails du Membre - Nobiel{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">
+        <i class="fas fa-user"></i> {{ member.full_name }}
+    </h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Informations Personnelles</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Prénom:</strong> {{ member.first_name }}
+                            </p>
+                            <p>
+                                <strong>Nom:</strong> {{ member.last_name }}
+                            </p>
+                            <p>
+                                <strong>Email:</strong> {{ member.email }}
+                            </p>
+                            <p>
+                                <strong>Téléphone:</strong> {{ member.phone or '-' }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Genre:</strong> {{ member.gender or '-' }}
+                            </p>
+                            <p>
+                                <strong>Date de naissance:</strong> 
+                                {% if member.birthdate %}
+                                    {{ member.birthdate.strftime('%d/%m/%Y') }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Adresse</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        <strong>Rue:</strong> {{ member.address or '-' }}
+                    </p>
+                    <p>
+                        <strong>Ville:</strong> {{ member.city or '-' }}
+                    </p>
+                    <p>
+                        <strong>Code Postal:</strong> {{ member.postal_code or '-' }}
+                    </p>
+                    <p>
+                        <strong>Pays:</strong> {{ member.country or '-' }}
+                    </p>
+                </div>
+            </div>
+
+            {% if member.notes %}
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">Notes</h5>
+                </div>
+                <div class="card-body">
+                    {{ member.notes }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Statut d'Adhésion</h5>
+                </div>
+                <div class="card-body">
+                    <p>
+                        <strong>Statut:</strong><br>
+                        {% if member.membership_status == 'active' %}
+                            <span class="badge badge-success p-2">✓ Actif</span>
+                        {% elif member.membership_status == 'pending' %}
+                            <span class="badge badge-warning p-2">⏳ En attente</span>
+                        {% else %}
+                            <span class="badge badge-danger p-2">✗ Inactif</span>
+                        {% endif %}
+                    </p>
+                    <p>
+                        <strong>Type:</strong>
+                        {{ member.membership_type or '-' }}
+                    </p>
+                    <p>
+                        <strong>Adhérent depuis:</strong><br>
+                        {{ member.joined_at.strftime('%d/%m/%Y') }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Adhésions</h5>
+                </div>
+                <div class="card-body">
+                    {% if member.adhesions %}
+                    <p>
+                        <strong>Total:</strong> {{ member.adhesions|length }} adhésion(s)
+                    </p>
+                    <ul class="list-unstyled">
+                        {% for adhesion in member.adhesions %}
+                        <li class="mb-2">
+                            <small>
+                                {{ adhesion.adhesion_type }} - 
+                                {{ "%.0f"|format(adhesion.amount) }} XOF
+                                {% if adhesion.payment_status == 'paid' %}
+                                    <span class="badge badge-success">Payée</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Pending</span>
+                                {% endif %}
+                            </small>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted">Aucune adhésion.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <a href="{{ url_for('admin.edit_member_admin', member_id=member.id) }}" class="btn btn-primary btn-block mb-2">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{{ url_for('admin.manage_members') }}" class="btn btn-secondary btn-block">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

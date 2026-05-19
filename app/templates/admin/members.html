@@ -1,0 +1,512 @@
+{% extends "base.html" %}
+
+{% block title %}Annuaire des Membres - Nobiel{% endblock %}
+
+{% block content %}
+<div class="members-container">
+    <div class="fluid-blob-mid" aria-hidden="true"></div>
+    <div class="container mt-5">
+        <div class="members-header">
+            <h1>Annuaire des Membres</h1>
+        </div>
+
+        <!-- Barre de recherche et filtres -->
+        <div class="search-section">
+            <form method="GET" class="search-wrapper">
+                <input type="text" name="search" class="search-input" placeholder="Rechercher un membre..." 
+                       value="{{ search }}">
+                
+                <select name="city" class="city-filter">
+                    <option value="">Toutes les villes</option>
+                    <option value="">Toutes les villes</option>
+                </select>
+                
+                <button type="submit" class="search-btn">Rechercher</button>
+            </form>
+        </div>
+
+        <!-- Grille de cartes -->
+        <div class="members-grid">
+            {% if members.items %}
+                {% for member in members.items %}
+                <div class="member-card">
+                    <div class="card-content">
+                        <h3 class="member-name">{{ member.full_name }}</h3>
+                        
+                        <p class="member-type">
+                            {% if member.membership_type == 'professional' %}
+                                <em style="color: #b577d9;">Professionnel</em>
+                            {% elif member.membership_type == 'student' %}
+                                <em style="color: #d97eb5;">Étudiant</em>
+                            {% elif member.membership_type == 'partner' %}
+                                <em style="color: #7db5d9;">Partenaire</em>
+                            {% elif member.membership_type == 'donor' %}
+                                <em style="color: #d9c37e;">Donateur</em>
+                            {% else %}
+                                <em>{{ member.membership_type or 'Membre' }}</em>
+                            {% endif %}
+                        </p>
+                        
+                        {% if member.city %}
+                        <p class="member-location">
+                            <i class="fas fa-map-marker-alt"></i> {{ member.city }}
+                        </p>
+                        {% endif %}
+                        
+                        <p class="member-email">{{ member.email }}</p>
+                    </div>
+                    
+                    <div class="card-actions">
+                        <a href="{{ url_for('admin.view_member_admin', member_id=member.id) }}" 
+                           class="btn-profile">Voir Profil</a>
+                        
+                        <div class="action-icons">
+                            <a href="{{ url_for('admin.edit_member_admin', member_id=member.id) }}" 
+                               class="icon-btn edit-btn" title="Éditer">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% if member.membership_status != 'active' %}
+                            <form method="POST" 
+                                  action="{{ url_for('admin.activate_member', member_id=member.id) }}"
+                                  style="display:inline;">
+                                <button type="submit" class="icon-btn activate-btn" title="Activer">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <form method="POST" 
+                                  action="{{ url_for('admin.deactivate_member', member_id=member.id) }}"
+                                  style="display:inline;">
+                                <button type="submit" class="icon-btn deactivate-btn" title="Désactiver">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            <form method="POST" 
+                                  action="{{ url_for('admin.delete_member', member_id=member.id) }}"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('Êtes-vous sûr ? Cette action est irréversible.');">
+                                <button type="submit" class="icon-btn delete-btn" title="Supprimer définitivement">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="no-data">
+                <p>Aucun membre trouvé.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Pagination -->
+        {% if members.pages > 1 %}
+        <div class="pagination-wrapper">
+            {% if members.has_prev %}
+                <a href="{{ url_for('admin.manage_members', page=members.prev_num, status=current_status, search=search) }}" 
+                   class="btn btn-secondary">
+                    ← Précédent
+                </a>
+            {% endif %}
+            
+            <span class="pagination-info">Page {{ members.page }} / {{ members.pages }}</span>
+            
+            {% if members.has_next %}
+                <a href="{{ url_for('admin.manage_members', page=members.next_num, status=current_status, search=search) }}" 
+                   class="btn btn-secondary">
+                    Suivant →
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary mt-4">
+            ← Retour au Tableau de Bord
+        </a>
+    </div>
+</div>
+
+<style>
+/* ===== BLUE 3D FLUID TUBES DESIGN ===== */
+@keyframes tubeFloat1 {
+    0%,100% { border-radius: 62% 38% 55% 45% / 52% 62% 38% 48%; transform: translate(0,0) rotate(0deg); }
+    38%      { border-radius: 42% 58% 45% 55% / 62% 38% 55% 45%; transform: translate(14px,-22px) rotate(4deg); }
+    72%      { border-radius: 55% 45% 62% 38% / 45% 55% 42% 58%; transform: translate(-10px,14px) rotate(-2deg); }
+}
+@keyframes tubeFloat2 {
+    0%,100% { border-radius: 45% 55% 38% 62% / 55% 45% 62% 38%; transform: translate(0,0) rotate(0deg); }
+    35%      { border-radius: 62% 38% 55% 45% / 38% 62% 45% 55%; transform: translate(-18px,16px) rotate(-5deg); }
+    70%      { border-radius: 38% 62% 45% 55% / 62% 38% 55% 45%; transform: translate(12px,-10px) rotate(3deg); }
+}
+@keyframes tubeFloat3 {
+    0%,100% { border-radius: 50% 50% 62% 38% / 62% 38% 50% 50%; transform: translate(0,0) rotate(0deg); }
+    50%      { border-radius: 38% 62% 50% 50% / 50% 62% 38% 62%; transform: translate(22px,10px) rotate(4deg); }
+}
+
+.members-container {
+    min-height: 100vh;
+    background: #00c3ff;
+    position: relative;
+    padding: 40px 0;
+    overflow: hidden;
+}
+
+/* Tube 1 — grand, haut-gauche, bleu profond */
+.members-container::before {
+    content: '';
+    position: fixed;
+    top: -180px;
+    left: -220px;
+    width: 780px;
+    height: 680px;
+    background: radial-gradient(ellipse at 35% 28%, #bfdbfe 0%, #60a5fa 18%, #3b82f6 38%, #1d4ed8 60%, #1e3a8a 82%, #172554 100%);
+    border-radius: 62% 38% 55% 45% / 52% 62% 38% 48%;
+    opacity: 0.92;
+    animation: tubeFloat1 16s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform, border-radius;
+}
+
+/* Tube 2 — grand, bas-droite */
+.members-container::after {
+    content: '';
+    position: fixed;
+    bottom: -180px;
+    right: -200px;
+    width: 720px;
+    height: 620px;
+    background: radial-gradient(ellipse at 68% 72%, #93c5fd 0%, #3b82f6 22%, #2563eb 46%, #1e40af 68%, #172554 95%);
+    border-radius: 45% 55% 38% 62% / 55% 45% 62% 38%;
+    opacity: 0.88;
+    animation: tubeFloat2 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform, border-radius;
+}
+
+/* Tube 3 — moyen, milieu-droite */
+.fluid-blob-mid {
+    position: fixed;
+    top: 15%;
+    right: -140px;
+    width: 540px;
+    height: 460px;
+    background: radial-gradient(ellipse at 42% 38%, #7dd3fc 0%, #38bdf8 14%, #0284c7 38%, #1d4ed8 62%, #1e3a8a 86%, #0f172a 100%);
+    border-radius: 50% 50% 62% 38% / 62% 38% 50% 50%;
+    opacity: 0.82;
+    animation: tubeFloat3 24s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform, border-radius;
+}
+
+.members-header {
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 1;
+}
+
+.members-header h1 {
+    font-size: 36px;
+    color: #ffffff;
+    margin: 0;
+    font-weight: 800;
+    text-shadow: 0 2px 16px rgba(0, 60, 140, 0.35), 0 1px 3px rgba(0,0,0,0.18);
+    letter-spacing: -0.5px;
+}
+
+.search-section {
+    background: rgba(255, 255, 255, 0.88);
+    padding: 25px;
+    border-radius: 16px;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 28px rgba(0, 60, 180, 0.18);
+    border: 1px solid rgba(147, 197, 253, 0.35);
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(12px);
+}
+
+.search-wrapper {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.search-input {
+    flex: 1;
+    padding: 12px 18px;
+    border: 1.5px solid #bfdbfe;
+    border-radius: 10px;
+    font-size: 14px;
+    background: rgba(255,255,255,0.9);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+}
+
+.city-filter {
+    padding: 12px 18px;
+    border: 1.5px solid #bfdbfe;
+    border-radius: 10px;
+    font-size: 14px;
+    background: rgba(255,255,255,0.9);
+    cursor: pointer;
+    transition: border-color 0.3s;
+    min-width: 150px;
+}
+
+.city-filter:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.search-btn {
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 60%, #60a5fa 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+}
+
+.search-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45);
+}
+
+.members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 2;
+}
+
+.member-card {
+    background: rgba(255, 255, 255, 0.94);
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0, 60, 180, 0.10);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s;
+    border: 1px solid rgba(147, 197, 253, 0.22);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+}
+
+.member-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #2563eb, #60a5fa, #00c3ff);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.member-card:hover {
+    box-shadow: 0 14px 40px rgba(0, 60, 180, 0.22);
+    transform: translateY(-6px);
+    border-color: rgba(96, 165, 250, 0.40);
+}
+
+.member-card:hover::before {
+    opacity: 1;
+}
+
+.card-content {
+    flex: 1;
+    margin-bottom: 20px;
+}
+
+.member-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e3a8a;
+    margin: 0 0 8px 0;
+}
+
+.member-type {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.member-type em {
+    font-style: italic;
+    font-weight: 600;
+    color: #2563eb;
+}
+
+.member-location {
+    margin: 10px 0;
+    font-size: 13px;
+    color: #1d4ed8;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.member-location i {
+    color: #3b82f6;
+}
+
+.member-email {
+    margin: 10px 0;
+    font-size: 13px;
+    color: #666;
+    word-break: break-all;
+}
+
+.card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-profile {
+    display: block;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 60%, #60a5fa 100%);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+}
+
+.btn-profile:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.40);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.action-icons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+}
+
+.icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+    text-decoration: none;
+    color: white;
+}
+
+.edit-btn {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.edit-btn:hover {
+    background: #bfdbfe;
+    transform: translateY(-2px);
+}
+
+.delete-btn {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.delete-btn:hover {
+    background: #fecaca;
+    transform: translateY(-2px);
+}
+
+.pagination-wrapper {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    background: rgba(255, 255, 255, 0.88);
+    border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(0, 60, 180, 0.12);
+    border: 1px solid rgba(147, 197, 253, 0.30);
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(10px);
+}
+
+.pagination-info {
+    color: #555;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.no-data {
+    grid-column: 1 / -1;
+    padding: 60px 20px;
+    text-align: center;
+    color: #888;
+    background: rgba(255, 255, 255, 0.90);
+    border-radius: 16px;
+    border: 1px solid rgba(147, 197, 253, 0.22);
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(8px);
+}
+
+@media (max-width: 1024px) {
+    .members-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .search-wrapper {
+        flex-direction: column;
+    }
+    
+    .city-filter {
+        width: 100%;
+    }
+    
+    .search-btn {
+        width: 100%;
+    }
+    
+    .members-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .members-header h1 {
+        font-size: 28px;
+    }
+}
+</style>
+{% endblock %}

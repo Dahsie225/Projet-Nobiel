@@ -1,0 +1,93 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Don reçu – Nobiel{% endblock %}
+
+{% block content %}
+<style>
+.return-wrapper {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+}
+.return-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 48px 40px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 12px 48px rgba(13,153,144,0.12);
+    border: 1.5px solid rgba(19,191,181,0.18);
+}
+.return-icon {
+    font-size: 72px;
+    margin-bottom: 20px;
+}
+.return-card h1 {
+    font-size: 26px;
+    color: #2d1b4e;
+    font-weight: 800;
+    margin-bottom: 14px;
+}
+.return-card p {
+    font-size: 15px;
+    color: #5a6a7a;
+    line-height: 1.7;
+    margin-bottom: 28px;
+}
+.return-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.btn-return-home {
+    padding: 13px 26px;
+    background: linear-gradient(135deg, #13bfb5 0%, #0d9990 100%);
+    color: #fff;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.25s;
+}
+.btn-return-home:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13,153,144,0.35);
+    color: #fff;
+}
+.btn-return-donate {
+    padding: 13px 26px;
+    border: 2px solid #13bfb5;
+    color: #0d9990;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.25s;
+}
+.btn-return-donate:hover {
+    background: #f0fdfb;
+    transform: translateY(-2px);
+}
+</style>
+
+<div class="return-wrapper">
+    <div class="return-card">
+        <div class="return-icon">🙏</div>
+        <h1>Merci pour votre générosité !</h1>
+        <p>
+            Votre paiement a été soumis avec succès.<br>
+            Vous recevrez une confirmation dès que votre don aura été traité.<br><br>
+            Chaque contribution, grande ou petite, fait une vraie différence dans la vie
+            des bénéficiaires de <strong>NOBIEL</strong>.
+        </p>
+        <div class="return-actions">
+            <a href="{{ url_for('main.index') }}" class="btn-return-home">🏠 Retour à l'accueil</a>
+            <a href="{{ url_for('main.donate') }}" class="btn-return-donate">❤️ Faire un autre don</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

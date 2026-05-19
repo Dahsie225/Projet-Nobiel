@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Tableau de Bord Admin - Nobiel{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Gestion des Articles</h1>
+    <a href="{{ url_for('articles.create_article') }}" class="btn btn-primary">Nouvel Article</a>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Titre</th>
+            <th>Auteur</th>
+            <th>Catégorie</th>
+            <th>Statut</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if articles %}
+            {% for article in articles %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('articles.view_article', slug=article.slug) }}">
+                            {{ article.title }}
+                        </a>
+                    </td>
+                    <td>{{ article.author.full_name or article.author.username }}</td>
+                    <td>
+                        {% if article.category == 'news' %}Actualité
+                        {% elif article.category == 'event' %}Événement
+                        {% elif article.category == 'announcement' %}Annonce
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if article.is_published %}
+                            <span class="badge badge-success">Publié</span>
+                        {% else %}
+                            <span class="badge badge-warning">Brouillon</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ article.created_at.strftime('%d %b %Y') }}</td>
+                    <td>
+                        <a href="{{ url_for('articles.edit_article', article_id=article.id) }}" class="btn-sm btn-secondary">Éditer</a>
+                        <form method="POST" action="{{ url_for('articles.delete_article', article_id=article.id) }}" style="display:inline;">
+                            <button type="submit" class="btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr ?')">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="6" class="empty">Aucun article.</td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+<style>
+.badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.badge-warning {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+</style>
+{% endblock %}

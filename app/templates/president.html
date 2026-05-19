@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Biographie du Président - NOBIEL{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Page biographie ── */
+.bio-page {
+    min-height: 100vh;
+    background: #f8f8f6;
+    padding: 0 0 80px;
+}
+
+/* Bandeau titre */
+.bio-header {
+    background: #fff;
+    border-bottom: 3px solid #e8e8e4;
+    padding: 40px 0 32px;
+    margin-bottom: 48px;
+}
+.bio-header .bio-breadcrumb {
+    font-size: 12px;
+    font-weight: 700;
+    color: #c0392b;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.bio-header .bio-breadcrumb::before {
+    content: '—';
+    color: #c0392b;
+}
+.bio-header h1 {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 900;
+    color: #111;
+    margin: 0;
+    line-height: 1.1;
+}
+
+/* Corps */
+.bio-body {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* Bloc texte+photo style journal */
+.bio-float-block {
+    margin-bottom: 36px;
+    overflow: hidden;
+}
+.bio-float-block .bio-photo {
+    width: 220px;
+    height: auto;
+    max-height: 300px;
+    object-fit: contain;
+    object-position: top center;
+    border-radius: 8px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+    display: block;
+    background: #f0f0ec;
+}
+.bio-float-block.float-left .bio-photo  { float: left;  margin: 0 28px 16px 0; }
+.bio-float-block.float-right .bio-photo { float: right; margin: 0 0 16px 28px; }
+
+.bio-float-block .bio-photo-placeholder {
+    width: 220px;
+    height: 270px;
+    border-radius: 4px;
+    background: #e0e0d8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    color: #aaa;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+}
+.bio-float-block.float-left  .bio-photo-placeholder { float: left;  margin: 0 28px 16px 0; }
+.bio-float-block.float-right .bio-photo-placeholder { float: right; margin: 0 0 16px 28px; }
+
+.bio-float-block p {
+    font-size: 15px;
+    line-height: 1.85;
+    color: #333;
+    text-align: justify;
+    margin: 0 0 16px;
+}
+.bio-float-block p:last-child { margin-bottom: 0; }
+
+/* Séparateur */
+.bio-divider {
+    clear: both;
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 36px 0;
+}
+
+/* Faits marquants */
+.bio-highlights {
+    background: #fff;
+    border-left: 4px solid #c0392b;
+    border-radius: 0 6px 6px 0;
+    padding: 20px 24px;
+    margin: 36px 0;
+}
+.bio-highlights h3 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #c0392b;
+    margin: 0 0 14px;
+}
+.bio-highlights ul {
+    margin: 0;
+    padding-left: 18px;
+}
+.bio-highlights ul li {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.7;
+    margin-bottom: 6px;
+}
+.bio-highlights ul li::marker { color: #c0392b; }
+
+/* Retour */
+.bio-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #4a8c1c;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 30px;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+    margin-top: 36px;
+}
+.bio-back-btn:hover {
+    background: #5aab22;
+    transform: translateY(-2px);
+    color: #fff;
+    text-decoration: none;
+}
+.bio-back-btn svg { width: 14px; height: 14px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bio-page">
+
+    <!-- Bandeau titre -->
+    <div class="bio-header">
+        <div class="container">
+            <div class="bio-breadcrumb">Biographie du Président</div>
+            <h1>Le Président de NOBIEL</h1>
+        </div>
+    </div>
+
+    <!-- Corps de la biographie -->
+    <div class="bio-body">
+
+        <!-- Bloc 1 : photo gauche + intro -->
+        <div class="bio-float-block float-left">
+            <img src="{{ url_for('static', filename='images/marry2.jpeg') }}" class="bio-photo" alt="Président NOBIEL">
+            <p>
+                À la tête de l'Association NOBIEL depuis son élection, le Président incarne les valeurs
+                de solidarité, d'engagement et de fraternité qui fondent notre association. Titulaire d'un
+                diplôme universitaire, sa passion pour les questions de société et son investissement
+                dans la vie associative le conduisent à s'impliquer dans de nombreux projets au profit
+                des élèves et étudiants ressortissants de la région du Bounkani.
+            </p>
+            <p>
+                Pour lui, les thématiques liées à l'éducation, à la solidarité entre les membres et
+                au développement de la jeunesse n'ont plus de secret. Il travaille sans relâche pour
+                renforcer les liens entre les membres de NOBIEL et porter haut les ambitions de notre
+                communauté.
+            </p>
+        </div>
+
+        <hr class="bio-divider">
+
+        <!-- Bloc 2 : photo droite + engagement -->
+        <div class="bio-float-block float-right">
+            {# Remplacez par une 2ème photo si disponible :
+               <img src="{{ url_for('static', filename='images/president2.jpg') }}" class="bio-photo" alt="Président NOBIEL"> #}
+            <img src="{{ url_for('static', filename='images/marry.jpeg') }}" class="bio-photo" alt="Président NOBIEL">
+            <p>
+                Impliqué dans la vie humanitaire et associative, il a coordonné plusieurs initiatives
+                pour l'insertion socioprofessionnelle des diplômés de l'association. Il s'investit
+                également dans des formations sur les questions de responsabilité des jeunes, de paix
+                et d'engagement citoyen au sein des différentes sections régionales de NOBIEL.
+            </p>
+            <p>
+                Ces responsabilités le conduisent à représenter la jeunesse de la région du Bounkani
+                partout où le besoin se fait sentir, défendant les intérêts physiques et moraux des
+                membres sur le plan académique et professionnel.
+            </p>
+        </div>
+
+        <hr class="bio-divider">
+
+        <!-- Faits marquants -->
+        <div class="bio-highlights">
+            <h3>Faits marquants</h3>
+            <ul>
+                <li>Élu Président de NOBIEL à la suite d'une convention démocratique</li>
+                <li>Coordinateur de plusieurs projets d'insertion professionnelle pour les membres diplômés</li>
+                <li>Formateur sur les thématiques de civisme, citoyenneté et engagement associatif</li>
+                <li>Représentant de la région du Bounkani dans différentes instances académiques</li>
+                <li>Promoteur de la solidarité inter-membres et du développement du tutorat</li>
+            </ul>
+        </div>
+
+        <!-- Dernier bloc -->
+        <div class="bio-float-block float-left">
+            <img src="{{ url_for('static', filename='images/marry3.jpeg') }}" class="bio-photo" alt="Président NOBIEL">
+            <p>
+                Prix d'excellence au sein de l'association, il continue de porter le flambeau de NOBIEL
+                avec détermination. Son engagement pour l'éducation et la promotion des valeurs
+                associatives fait de lui un modèle pour les jeunes membres de notre communauté.
+            </p>
+            <p>
+                Sous sa présidence, NOBIEL intensifie ses actions pour la solidarité, l'encadrement
+                académique et le rayonnement de la région du Bounkani sur la scène nationale.
+            </p>
+        </div>
+
+        <!-- Bouton retour -->
+        <div style="clear:both; text-align:center; padding-top: 16px;">
+            <a href="{{ url_for('main.index') }}" class="bio-back-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+                Retour à l'accueil
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} - Nobiel{% endblock %}
+
+{% block content %}
+<article class="article-view">
+    <div class="article-header">
+        <h1>{{ article.title }}</h1>
+        <div class="article-meta">
+            <span class="author">{{ article.author.full_name or article.author.username }}</span>
+            <span class="date">{{ article.published_at.strftime('%d %B %Y') if article.published_at else article.created_at.strftime('%d %B %Y') }}</span>
+            {% if article.category %}
+                <span class="category">
+                    {% if article.category == 'news' %}Actualité
+                    {% elif article.category == 'event' %}Événement
+                    {% elif article.category == 'announcement' %}Annonce
+                    {% endif %}
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="article-content">
+        {{ article.content|safe }}
+    </div>
+
+    <div class="article-footer">
+        {% if current_user.is_authenticated and (current_user.id == article.author_id or current_user.role == 'admin') %}
+            <a href="{{ url_for('articles.edit_article', article_id=article.id) }}" class="btn btn-secondary">Éditer</a>
+            <form method="POST" action="{{ url_for('articles.delete_article', article_id=article.id) }}" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr ?')">Supprimer</button>
+            </form>
+        {% endif %}
+    </div>
+</article>
+
+<div class="article-navigation">
+    <a href="{{ url_for('articles.list_articles') }}" class="btn btn-secondary">← Retour aux articles</a>
+</div>
+
+<style>
+.article-view {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 0 auto 40px;
+}
+
+.article-header {
+    border-bottom: 2px solid var(--light-color);
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.article-header h1 {
+    margin-bottom: 15px;
+}
+
+.article-meta {
+    font-size: 14px;
+    color: #999;
+}
+
+.article-meta span {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.article-content {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.article-content h2 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}
+
+.article-content p {
+    margin-bottom: 15px;
+}
+
+.article-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 20px 0;
+}
+
+.article-footer {
+    border-top: 1px solid var(--light-color);
+    padding-top: 20px;
+    margin-top: 30px;
+}
+
+.article-footer .btn {
+    margin-right: 10px;
+}
+
+.article-navigation {
+    text-align: center;
+}
+</style>
+{% endblock %}

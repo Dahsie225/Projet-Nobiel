@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}{{ member.full_name }} - Nobiel{% endblock %}
+
+{% block content %}
+<div class="member-header">
+    <div class="header-content">
+        <div class="header-info">
+            <h1>{{ member.full_name }}</h1>
+            <p class="member-meta">
+                {% if member.membership_type == 'student' %}Étudiant
+                {% elif member.membership_type == 'professional' %}Professionnel
+                {% elif member.membership_type == 'partner' %}Partenaire Institutionnel
+                {% elif member.membership_type == 'donor' %}Donateur
+                {% endif %}
+                • Membre depuis {{ member.joined_at.strftime('%d %b %Y') }}
+            </p>
+        </div>
+        
+        {% if member.identity_photo %}
+            <div class="header-photo">
+                <img src="{{ url_for('static', filename=member.identity_photo) }}?v={{ member.updated_at.timestamp()|int }}" alt="Photo d'identité" class="member-avatar">
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="member-profile">
+    <div class="profile-section">
+        <h2>Informations Personnelles</h2>
+        <dl>
+            <dt>Email</dt>
+            <dd>{{ member.email }}</dd>
+            
+            {% if member.phone %}
+                <dt>Téléphone</dt>
+                <dd>{{ member.phone }}</dd>
+            {% endif %}
+            
+            {% if member.gender %}
+                <dt>Genre</dt>
+                <dd>{{ "Homme" if member.gender == "M" else "Femme" }}</dd>
+            {% endif %}
+            
+            {% if member.birthdate %}
+                <dt>Date de Naissance</dt>
+                <dd>{{ member.birthdate.strftime('%d %b %Y') }}</dd>
+            {% endif %}
+        </dl>
+    </div>
+
+    <div class="profile-section">
+        <h2>Adresse</h2>
+        <dl>
+            <dt>Ville</dt>
+            <dd>{{ member.city }}</dd>
+            <dt>Pays</dt>
+            <dd>{{ member.country }}</dd>
+        </dl>
+    </div>
+
+    {% if current_user.is_authenticated and (current_user.id == member.id or current_user.role == 'admin') %}
+        <div class="profile-section">
+            <h2>Statut d'Adhésion</h2>
+            <dl>
+                <dt>Statut</dt>
+                <dd>
+                    <span class="badge" style="background: 
+                        {% if member.membership_status == 'active' %}#d4edda; color: #155724
+                        {% elif member.membership_status == 'pending' %}#fff3cd; color: #856404
+                        {% elif member.membership_status == 'inactive' %}#f8d7da; color: #721c24
+                        {% endif %}
+                    ">{{ member.membership_status }}</span>
+                </dd>
+            </dl>
+        </div>
+
+        <div class="profile-actions">
+            <a href="{{ url_for('members.view_adhesions', member_id=member.id) }}" class="btn btn-primary">
+                Gérer les Adhésions
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+/* ── Fond dashboard clair ── */
+body {
+    background: #eef2f7 !important;
+}
+
+body::before, body::after { content: none; }
+
+.member-header {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 14px;
+    margin-bottom: 24px;
+    border: none;
+    border-left: none;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    position: relative;
+    z-index: 1;
+}
+
+.header-content {
+    display: grid;
+    grid-template-columns: 1fr 250px;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.header-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.member-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 32px;
+    color: #1e293b;
+}
+
+.member-photo-header {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.header-photo {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.member-avatar {
+    width: 220px;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    border: 3px solid #ffffff;
+}
+
+.member-meta {
+    font-size: 14px;
+    color: #64748b;
+    margin: 0;
+}
+
+.member-profile {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.profile-section {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    border: none;
+    border-top: none;
+    border-image: none;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Accent coloré en haut de chaque carte (style dashboard) */
+.profile-section::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #4ade80, #22d3ee, #f59e0b);
+    border-radius: 14px 14px 0 0;
+}
+
+.profile-section h2 {
+    margin-bottom: 20px;
+    color: #1e293b;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.profile-section dl {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 15px;
+}
+
+.profile-section dt {
+    font-weight: 600;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.profile-section dd {
+    margin: 0;
+    color: #1e293b;
+    font-size: 13px;
+}
+
+.profile-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+}
+
+.profile-actions .btn-primary {
+    background: #22c55e !important;
+    border: none !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(34,197,94,0.35) !important;
+    border-radius: 8px !important;
+}
+.profile-actions .btn-primary:hover {
+    background: #16a34a !important;
+    transform: translateY(-2px) !important;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .member-header {
+        padding: 20px;
+    }
+
+    .member-header h1 {
+        font-size: 24px;
+    }
+
+    .header-photo {
+        justify-content: center;
+    }
+
+    .member-profile {
+        grid-template-columns: 1fr;
+    }
+}
+
+</style>
+{% endblock %}

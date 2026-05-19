@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Nobiel{% endblock %}
+
+{% block content %}
+<div class="dp-page">
+    <div class="dp-inner dp-inner--wide">
+
+        <a href="{{ url_for('articles.list_articles') }}" class="dp-back">← Retour aux articles</a>
+
+        <div class="dp-hero">
+            <h1>{{ title }}</h1>
+        </div>
+
+        <div class="dp-card">
+            <form method="POST" class="dp-form">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    {{ form.title.label }}
+                    {{ form.title(class="") }}
+                    {% if form.title.errors %}
+                        <span class="form-error">{{ form.title.errors[0] }}</span>
+                    {% endif %}
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr auto; gap:20px; align-items:end;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        {{ form.category.label }}
+                        {{ form.category(class="") }}
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="dp-checkbox-label">
+                            {{ form.is_published() }}
+                            {{ form.is_published.label.text }}
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:22px;">
+                    {{ form.excerpt.label }}
+                    {{ form.excerpt(rows=3, class="") }}
+                    <span class="form-hint">Résumé affiché dans la liste (optionnel)</span>
+                    {% if form.excerpt.errors %}
+                        <span class="form-error">{{ form.excerpt.errors[0] }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.content.label }}
+                    {{ form.content(rows=18, class="", id="content-editor") }}
+                    {% if form.content.errors %}
+                        <span class="form-error">{{ form.content.errors[0] }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="dp-form-actions" style="border-top:1px solid rgba(255,255,255,0.08); padding-top:20px;">
+                    <button type="submit" class="dp-btn dp-btn-primary">{{ form.submit.label.text }}</button>
+                    <a href="{{ url_for('articles.list_articles') }}" class="dp-btn dp-btn-ghost">Annuler</a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+

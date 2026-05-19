@@ -1,0 +1,101 @@
+﻿================================================================================
+                   NOBIEL - DÉMARRAGE RAPIDE (30 secondes)
+================================================================================
+
+ÉTAPE 1 : Démarrer WAMP
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Double-cliquez sur : C:\wamp64\wampmanager.exe                             │
+│ Attendez que l'icône devienne VERTE                                         │
+│ Vérifiez : http://localhost (doit afficher page WAMP)                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ÉTAPE 2 : Créer la base de données
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. Allez à http://localhost/phpmyadmin                                      │
+│ 2. Cliquez sur "Nouvelle" ou "New"                                          │
+│ 3. Entrez : nobiel                                                          │
+│ 4. Cliquez "Créer"                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ÉTAPE 3 : Initialiser les tables
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Ouvrez PowerShell et exécutez :                                             │
+│                                                                              │
+│ cd c:\wamp64\www\Projets\NOBIEL                                              │
+│ env\Scripts\activate                                                         │
+│ python init_database.py                                                      │
+│                                                                              │
+│ Vous devriez voir :                                                          │
+│ ✅ Base de données initialisée avec succès !                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ÉTAPE 4 : Lancer l'application
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Dans le même terminal :                                                      │
+│                                                                              │
+│ python run.py                                                                │
+│                                                                              │
+│ Vous verrez :                                                                │
+│ * Running on http://127.0.0.1:5000                                          │
+│                                                                              │
+│ ⚡ ACCÉDEZ À : http://localhost:5000                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                              VOUS Y ÊTES !
+================================================================================
+
+Premières actions :
+  1. Cliquez "S'inscrire" pour créer un compte
+  2. Remplissez le formulaire
+  3. Connectez-vous avec votre compte
+
+Pour devenir ADMIN (pour tester tableau de bord) :
+  1. Allez à http://localhost/phpmyadmin
+  2. Allez à table "users"
+  3. Trouvez votre utilisateur
+  4. Modifiez "role" : changez "user" en "admin"
+  5. Sauvegardez
+
+Fonctionnalités disponibles :
+  ✅ Page d'accueil
+  ✅ Actualités (créer, éditer, supprimer articles)
+  ✅ Annuaire des membres
+  ✅ Adhésion (formulaire complet)
+  ✅ Gestion des adhésions
+
+================================================================================
+                           EN CAS DE PROBLÈME
+================================================================================
+
+"Connection refused" (Erreur de connexion MySQL)
+  → Démarrez WAMP : C:\wamp64\wampmanager.exe
+
+"Base de données n'existe pas"
+  → Créez la base via phpMyAdmin (voir ÉTAPE 2)
+
+"404 Page not found"
+  → Vérifiez que le serveur Flask fonctionne (voir ÉTAPE 4)
+
+"Bad Request error"
+  → Vérifiez SECRET_KEY dans config.py
+
+Pour plus d'aide :
+  → Consultez README.md ou GUIDE_DEMARRAGE.md
+
+================================================================================
+                         COMMANDES UTILES
+================================================================================
+
+Arrêter le serveur      : Ctrl+C dans le terminal
+Relancer             : python run.py
+Accéder phpMyAdmin   : http://localhost/phpmyadmin
+Voir logs d'erreur   : Regardez le terminal (output du serveur)
+
+================================================================================
+
+📖 Documentation complète : Ouvrez README.md
+
+Bon développement ! 🚀
+
+================================================================================

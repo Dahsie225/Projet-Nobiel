@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Inscription - Nobiel{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box">
+        <h1>Créer un Compte</h1>
+        
+        <form method="POST" class="form" novalidate>
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(
+                    class="form-control",
+                    autocapitalize="none",
+                    autocorrect="off",
+                    autocomplete="username",
+                    spellcheck="false"
+                ) }}
+                {% if form.username.errors %}
+                    <small class="error">{{ form.username.errors[0] }}</small>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.email.label }}
+                {{ form.email(
+                    class="form-control",
+                    type="email",
+                    autocapitalize="none",
+                    autocorrect="off",
+                    autocomplete="email",
+                    inputmode="email",
+                    spellcheck="false"
+                ) }}
+                {% if form.email.errors %}
+                    <small class="error">{{ form.email.errors[0] }}</small>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.full_name.label }}
+                {{ form.full_name(
+                    class="form-control",
+                    autocomplete="name"
+                ) }}
+                {% if form.full_name.errors %}
+                    <small class="error">{{ form.full_name.errors[0] }}</small>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(
+                    class="form-control",
+                    autocomplete="new-password",
+                    autocapitalize="none",
+                    autocorrect="off"
+                ) }}
+                {% if form.password.errors %}
+                    <small class="error">{{ form.password.errors[0] }}</small>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.password_confirm.label }}
+                {{ form.password_confirm(
+                    class="form-control",
+                    autocomplete="new-password",
+                    autocapitalize="none",
+                    autocorrect="off"
+                ) }}
+                {% if form.password_confirm.errors %}
+                    <small class="error">{{ form.password_confirm.errors[0] }}</small>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block">S'inscrire</button>
+            </div>
+        </form>
+        
+        <p class="auth-link">
+            Déjà inscrit ? <a href="{{ url_for('auth.login') }}">Se connecter</a>
+        </p>
+    </div>
+</div>
+
+<style>
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 16px;
+}
+
+.auth-box {
+    background: white;
+    padding: 36px 32px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 420px;
+}
+
+.auth-box h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 13px 12px;
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px; /* Empêche le zoom automatique sur iOS (min 16px) */
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+.form-group button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    background: #3b82f6;
+    color: white;
+    -webkit-appearance: none;
+    touch-action: manipulation;
+    transition: background 0.2s;
+}
+
+.form-group button:hover,
+.form-group button:active {
+    background: #2563eb;
+}
+
+.form-group input {
+    font-size: 16px;
+    padding: 13px 12px;
+    -webkit-appearance: none;
+    touch-action: manipulation;
+}
+
+.auth-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.error {
+    color: #e74c3c;
+    font-size: 13px;
+    display: block;
+    margin-top: 6px;
+}
+
+@media (max-width: 480px) {
+    .auth-box {
+        padding: 28px 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+    .auth-box h1 {
+        font-size: 22px;
+    }
+}
+</style>
+{% endblock %}
