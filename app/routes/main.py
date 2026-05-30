@@ -20,63 +20,10 @@ _CINETPAY_CHANNELS = {
 @main_bp.route('/donate/pay', methods=['POST'])
 @csrf.exempt
 def donate_pay():
-    """Initie un paiement CinetPay et retourne l'URL de checkout."""
-    data = request.get_json(silent=True) or {}
-
-    try:
-        amount = int(str(data.get('amount', 0)).replace(' ', ''))
-    except (ValueError, TypeError):
-        return jsonify({'error': 'Montant invalide'}), 400
-
-    if amount < 100:
-        return jsonify({'error': 'Le montant minimum est 100 FCFA'}), 400
-
-    method   = data.get('method', 'orange')
-    don_type = data.get('type', 'Don Unique')
-    phone    = str(data.get('phone', '')).strip()
-
-    if not phone:
-        return jsonify({'error': 'Numéro de téléphone requis'}), 400
-
-    channel        = _CINETPAY_CHANNELS.get(method, 'CI_ORANGEMONEY')
-    transaction_id = uuid.uuid4().hex[:20].upper()
-
-    payload = {
-        "apikey":        current_app.config.get('CINETPAY_API_KEY', ''),
-        "site_id":       current_app.config.get('CINETPAY_SITE_ID', ''),
-        "transaction_id": transaction_id,
-        "amount":        amount,
-        "currency":      "XOF",
-        "description":   f"Don NOBIEL – {don_type}",
-        "return_url":    url_for('main.donate_return', _external=True),
-        "notify_url":    url_for('main.donate_notify', _external=True),
-        "channels":      channel,
-        "customer_name":         "Donateur",
-        "customer_surname":      "NOBIEL",
-        "customer_email":        "contact@nobiel.org",
-        "customer_phone_number": phone,
-        "customer_address":      "Abidjan",
-        "customer_city":         "Abidjan",
-        "customer_country":      "CI",
-        "customer_state":        "CI",
-        "customer_zip_code":     "00225",
-    }
-
-    try:
-        resp = http_requests.post(
-            'https://api-checkout.cinetpay.com/v2/payment',
-            json=payload,
-            timeout=15,
-        )
-        body = resp.json()
-    except Exception as exc:
-        return jsonify({'error': f'Erreur réseau: {exc}'}), 502
-
-    if str(body.get('code')) == '201':
-        payment_url = body['data']['payment_url']
-        return jsonify({'payment_url': payment_url})
-
-    return jsonify({'error': body.get('message', 'Erreur CinetPay')}), 400
+    """Paiement en ligne momentanément suspendu."""
+    return jsonify({
+        'error': 'Les paiements en ligne sont temporairement suspendus. Merci de nous contacter pour soutenir NOBIEL.'
+    }), 503
 
 
 @main_bp.route('/donate/return')

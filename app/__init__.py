@@ -24,6 +24,7 @@ def create_app(config_name='development'):
     elif config_name == 'production':
         from config import ProductionConfig
         app.config.from_object(ProductionConfig)
+        ProductionConfig.validate()
     
     # Extensions
     db.init_app(app)
