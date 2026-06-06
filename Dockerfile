@@ -16,6 +16,13 @@ COPY . .
 # Make entrypoint executable
 RUN chmod +x entrypoint.sh
 
+# Create a non-root user `app`, take ownership of `/app`, and switch to it
+RUN addgroup --system app && adduser --system --ingroup app app
+RUN chown -R app:app /app
+
+# Run as non-root user for better security
+USER app
+
 # Expose the port Flask runs on
 EXPOSE 5000
 

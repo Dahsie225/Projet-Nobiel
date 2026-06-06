@@ -99,8 +99,8 @@
                         </div>
                     </div>
 
-                    <!-- Colonne droite : Newsletter (carte blanche) -->
-                    {% if not request.path.startswith('/admin') %}
+                    <!-- Colonne droite : Newsletter (affichée uniquement sur la page d'accueil) -->
+                    {% if request.endpoint == 'main.index' %}
                     <div class="footer-newsletter-wrap">
                         <div class="footer-newsletter-card">
                             <h3 class="footer-col-title footer-col-title--dark">Newsletter</h3>
@@ -165,6 +165,7 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" crossorigin="anonymous"></script>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% if request.endpoint == 'main.index' %}
     <script>
     function submitNewsletter() {
         const input = document.getElementById('footerNewsletterEmail');
@@ -197,6 +198,7 @@
         if (e.key === 'Enter') submitNewsletter();
     });
     </script>
+    {% endif %}
     <script>
     // Injection automatique du token CSRF dans tous les formulaires POST
     (function() {
